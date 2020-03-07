@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    </head>
+    <body>
+        <p id="Clock">test</p>
+        <script>
+            
+            var getNow = function(){
+                var nowTime = new Date();
+                var nowHour = nowTime.getHours();
+                var nowMin = nowTime.getMinutes();
+                var nowSec = nowTime.getSeconds();
+                msg = nowHour+":"+nowMin+":"+nowSec
+                console.log(msg)
+                document.getElementById("Clock").innerHTML = msg
+            }          
+            var msg = setInterval(getNow,1000);
+        </script>
+    </body>
+</html>
+
