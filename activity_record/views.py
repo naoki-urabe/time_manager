@@ -8,4 +8,13 @@ class ActivityRecordView(View):
             'msg': "hello"
         }
         return render(request, 'activity_record.html', context)
+
+class Test(View):
+    def post(self, request, *args, **kwargs):
+        now = (request.POST['status'])
+        context = {
+            'msg': "打刻完了"
+        }
+        return render(request, 'test.html', context)
 activity_record = ActivityRecordView.as_view()
+test = Test.as_view()

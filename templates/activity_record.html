@@ -1,22 +1,27 @@
+{% load static %}
 <!DOCTYPE html>
 <html>
     <head>
     </head>
     <body>
-        <p id="Clock">test</p>
-        <script>
-            
-            var getNow = function(){
-                var nowTime = new Date();
-                var nowHour = nowTime.getHours();
-                var nowMin = nowTime.getMinutes();
-                var nowSec = nowTime.getSeconds();
-                msg = nowHour+":"+nowMin+":"+nowSec
-                console.log(msg)
-                document.getElementById("Clock").innerHTML = msg
-            }          
-            var msg = setInterval(getNow,1000);
-        </script>
+        <form action = "{% url 'test' %}" method="post" name="activity">
+            <p id="Clock">test</p>
+            {% csrf_token %}
+            <input type="hidden" id="status" name="status" value="">
+            <button type="button" id="awake" name="awake">起床</button>
+            <button type="button" id="sleep" name="sleep">就寝</button>
+        </form>
+        
     </body>
+    <script src="{% static 'js/getNow.js' %}"></script>
+    <script>
+        setInterval(getNow,1000);
+        //console.log(getNow)
+        document.getElementById("awake").onclick = function() {
+            
+            document.getElementById("status").value = getNow();
+            document.activity.submit()
+        }
+    </script>
 </html>
 
