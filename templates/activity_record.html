@@ -4,22 +4,31 @@
     <head>
     </head>
     <body>
+        <p id="Clock"></p>
         <form action = "{% url 'test' %}" method="post" name="activity">
-            <p id="Clock">test</p>
             {% csrf_token %}
-            <input type="hidden" id="status" name="status" value="">
-            <button type="button" id="awake" name="awake">起床</button>
-            <button type="button" id="sleep" name="sleep">就寝</button>
+            <input type="hidden" id="active_exists" name="active_exists" value={{ active_exists }}>
+            <input type="hidden" id="task_id" name="task_id" value={{ active_id }}>
+            <button type="button" id="punch" name="punch">{{ active_status }}</button>
         </form>
-        
+        <form action = "{% url 'test' %}" method="post" name="task">
+            {% csrf_token %}
+            <input type="hidden" id="task_exists" name="task_exists" value={{ task_exists }}>
+            <input type="hidden" id="task_id" name="task_id" value={{ task_id }}>
+            <input type="text" id="task_name" name="task_name">
+            <button type="button" id="punch2" name="punch2">{{ task_status }}</button>
+        </form>
     </body>
     <script src="{% static 'js/getNow.js' %}"></script>
     <script>
         setInterval(getNow,1000);
         //console.log(getNow)
-        document.getElementById("awake").onclick = function() {
-            
-            document.getElementById("status").value = getNow();
+        document.getElementById("punch").onclick = function() {      
+            //document.getElementById("active_status").value = '{{ active_status }}'
+            document.activity.submit()
+        }
+        document.getElementById("punch2").onclick = function() {      
+            //document.getElementById("active_status").value = '{{ active_status }}'
             document.activity.submit()
         }
     </script>
