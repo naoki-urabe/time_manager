@@ -16,4 +16,4 @@ class TaskRecord(models.Model):
     end_time = models.fields.DateTimeField(null=True)
     period = models.fields.DateTimeField(null=True)
     today = models.fields.DateField(default = timezone.now().date())
-    is_active = models.fields.BooleanField(default = False)
+    is_active = models.fields.BooleanField(default = True)

@@ -4,13 +4,13 @@
     </head>
     <body>
         {{ active_status }}<br>
-        5秒後戻ります
+        2秒後戻ります
     </body>
     <script>
         function autoLink(){
             location.href="{% url 'activity_record' %}"
         }
-        setTimeout("autoLink()",5000)
+        setTimeout("autoLink()",2000)
     </script>
 </html>
 

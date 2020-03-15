@@ -5,17 +5,17 @@
     </head>
     <body>
         <p id="Clock"></p>
-        <form action = "{% url 'test' %}" method="post" name="activity">
+        <form action = "{% url 'register_active_record' %}" method="post" name="activity">
             {% csrf_token %}
             <input type="hidden" id="active_exists" name="active_exists" value={{ active_exists }}>
             <input type="hidden" id="task_id" name="task_id" value={{ active_id }}>
             <button type="button" id="punch" name="punch">{{ active_status }}</button>
         </form>
-        <form action = "{% url 'test' %}" method="post" name="task">
+        <form action = "{% url 'register_task_record' %}" method="post" name="task">
             {% csrf_token %}
             <input type="hidden" id="task_exists" name="task_exists" value={{ task_exists }}>
             <input type="hidden" id="task_id" name="task_id" value={{ task_id }}>
-            <input type="text" id="task_name" name="task_name">
+            <input type="text" id="task_name" name="task_name" value={{ task_name }}>
             <button type="button" id="punch2" name="punch2">{{ task_status }}</button>
         </form>
     </body>
@@ -29,7 +29,7 @@
         }
         document.getElementById("punch2").onclick = function() {      
             //document.getElementById("active_status").value = '{{ active_status }}'
-            document.activity.submit()
+            document.task.submit()
         }
     </script>
 </html>
