@@ -18,6 +18,32 @@
             <input type="text" id="task_name" name="task_name" value={{ task_name }}>
             <button type="button" id="punch2" name="punch2">{{ task_status }}</button>
         </form>
+        
+        <table border="1">
+            <tr>
+                <th>タスク名</th>
+                <th>開始時間</th>
+                <th>終了時間</th>
+                <th>活動時間</th>
+            </tr>
+            {% for activity in today_activity %}
+            <tr>
+            <td>{{activity.task}}</td>
+            <td>{{activity.begin_time|date:"H:i:s T"}}</td>
+            <td>{{activity.end_time|date:"H:i:s T"}}</td>
+            <td>{{activity.period}}</td>
+            {% endfor %}
+            </tr>
+            {% for task_history in task_histories %}
+            <tr>
+            <td>{{task_history.task}}</td>
+            <td>{{task_history.begin_time|date:"H:i:s T"}}</td>
+            <td>{{task_history.end_time|date:"H:i:s T"}}</td>
+            <td>{{task_history.period}}</td>
+            {% endfor %}
+            </tr>
+        </table>
+
     </body>
     <script src="{% static 'js/getNow.js' %}"></script>
     <script>
