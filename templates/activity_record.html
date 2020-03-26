@@ -2,8 +2,30 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+        <script type="text/javascript">
+        google.charts.load('current', {'packages':['timeline']});
+        google.charts.setOnLoadCallback(drawChart);
+        function drawChart() {
+            var container = document.getElementById('timeline');
+            var chart = new google.visualization.Timeline(container);
+            var dataTable = new google.visualization.DataTable();
+
+            dataTable.addColumn({ type: 'string', id: 'President' });
+            dataTable.addColumn({ type: 'date', id: 'Start' });
+            dataTable.addColumn({ type: 'date', id: 'End' });
+           
+            dataTable.addRows([  
+            {% for task_history in task_histories %}        
+            ["{{task_history.task}}",new Date("{{ task_history.begin_time.isoformat }}"), new Date("{{ task_history.end_time.isoformat }}")],          
+            {% endfor %}       
+            ]);
+            chart.draw(dataTable);
+        }
+        </script>
     </head>
     <body>
+        <div id="timeline" style="height: 180px;"></div>
         <p id="Clock"></p>
         <form action = "{% url 'register_active_record' %}" method="post" name="activity">
             {% csrf_token %}
