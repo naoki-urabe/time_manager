@@ -6,7 +6,7 @@ class ActiveRecord(models.Model):
     task = models.CharField(verbose_name='タスク名', max_length=50)
     begin_time = models.fields.DateTimeField(null=True)
     end_time = models.fields.DateTimeField(null=True)
-    #period = models.fields.FloatField(null=True)
+    period = models.fields.FloatField(null=True)
     today = models.fields.DateTimeField()
     today_jst = models.fields.DateField()
     is_active = models.fields.BooleanField(default = True)
