@@ -50,7 +50,7 @@ class RegisterActivityRecord(View):
         active_type=request.POST['active_type']
         if activity_id=='-1':
             task_name=request.POST['task_name']
-            active_record = ActiveRecord(task=task_name,begin_time=localtime(timezone.now()),today_jst=to_jst(timezone.now()),active_type=active_type)
+            active_record = ActiveRecord(task=task_name,begin_time=localtime(timezone.now()),today=timezone.now(),today_jst=to_jst(timezone.now()),active_type=active_type)
             active_record.save()
         else:
             active_record = ActiveRecord.objects.get(id=activity_id,active_type=active_type)
