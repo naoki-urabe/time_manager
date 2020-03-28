@@ -16,8 +16,8 @@
             dataTable.addColumn({ type: 'date', id: 'End' });
            
             dataTable.addRows([  
-            {% for task_history in task_histories %}        
-            ["{{task_history.task}}",new Date("{{ task_history.begin_time.isoformat }}"), new Date("{{ task_history.end_time.isoformat }}")],          
+            {% for activity in today_activity %}        
+            ["{{activity.task}}",new Date("{{ activity.begin_time.isoformat }}"), new Date("{{ activity.end_time.isoformat }}")],          
             {% endfor %}       
             ]);
             chart.draw(dataTable);
@@ -27,17 +27,20 @@
     <body>
         <div id="timeline" style="height: 180px;"></div>
         <p id="Clock"></p>
-        <form action = "{% url 'register_active_record' %}" method="post" name="activity">
+        <form action = "{% url 'register_activity_record' %}" method="post" name="activity">
             {% csrf_token %}
             <input type="hidden" id="active_exists" name="active_exists" value={{ active_exists }}>
-            <input type="hidden" id="task_id" name="task_id" value={{ active_id }}>
+            <input type="hidden" id="activity_id" name="activity_id" value={{ active_id }}>
+            <input type="hidden" id="active_type" name="active_type" value="active">
+            <input type="hidden" id="task_name" name="task_name" value="active">
             <button type="button" id="punch" name="punch">{{ active_status }}</button>
         </form>
-        <form action = "{% url 'register_task_record' %}" method="post" name="task">
+        <form action = "{% url 'register_activity_record' %}" method="post" name="task">
             {% csrf_token %}
-            <input type="hidden" id="task_exists" name="task_exists" value={{ task_exists }}>
-            <input type="hidden" id="task_id" name="task_id" value={{ task_id }}>
+            <input type="hidden" id="active_exists" name="active_exists" value={{ task_exists }}>
+            <input type="hidden" id="activity_id" name="activity_id" value={{ task_id }}>
             <input type="text" id="task_name" name="task_name" value={{ task_name }}>
+            <input type="hidden" id="active_type" name="active_type" value="task">
             <button type="button" id="punch2" name="punch2">{{ task_status }}</button>
         </form>
         
@@ -55,15 +58,6 @@
             <td>{{activity.end_time|date:"H:i:s T"}}</td>
             <td>{{activity.period}}</td>
             {% endfor %}
-            </tr>
-            {% for task_history in task_histories %}
-            <tr>
-            <td>{{task_history.task}}</td>
-            <td>{{task_history.begin_time|date:"H:i:s T"}}</td>
-            <td>{{task_history.end_time|date:"H:i:s T"}}</td>
-            <td>{{task_history.period}}</td>
-            {% endfor %}
-            </tr>
         </table>
 
     </body>
