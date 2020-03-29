@@ -10,4 +10,4 @@ class ActiveRecord(models.Model):
     today = models.fields.DateTimeField(null=True)
     today_jst = models.fields.DateField(null=True)
     is_active = models.fields.BooleanField(default = True)
-    active_type = models.CharField(verbose_name='タスク名', max_length=10,null=True)
+    active_type = models.CharField(verbose_name='タスクタイプ', max_length=10,null=True)

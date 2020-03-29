@@ -1,10 +1,11 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.views import View
 from .models import ActiveRecord
 from django.utils import timezone
 from django.utils.timezone import localtime
 import datetime
 from time import mktime
+from .forms import ActiveRecordFormSet
 
 # Create your views here.
 class ActivityRecordView(View):
@@ -64,6 +65,31 @@ class RegisterActivityRecord(View):
             'now': timezone.now()
         }
         return render(request, 'register_active_record.html', context)
+class RegisterScheduleView(View):
+    def get(self, request, *args, **kwargs):
+        print('get')
+        formset = ActiveRecordFormSet()
+        context = {
+        'formset':formset
+        }
+        return render(request,'register_schedule.html', context)
+        
+    def post(self, request, *args, **kwargs):
+        print(request.POST)
+        formset = ActiveRecordFormSet(request.POST or None)
+        if formset.is_valid():
+            formset.save() 
+            context = {
+                'register_success_msg':"登録完了",
+                'formset':formset
+            }
+            return render(request, 'register_schedule.html',context)
+        else:
+            print(formset.errors)
+            context = {
+                'formset':formset
+            }
+            return render(request, 'register_schedule.html',context)
 def to_jst(time):
     print((time + datetime.timedelta(hours=9)).date())
     return (time + datetime.timedelta(hours=9)).date()
@@ -72,3 +98,4 @@ def timedelta_to_sec(timedelta):
     return sec
 activity_record = ActivityRecordView.as_view()
 register_activity_record = RegisterActivityRecord.as_view()
+register_schedule = RegisterScheduleView.as_view()

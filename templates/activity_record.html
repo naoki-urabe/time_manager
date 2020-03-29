@@ -25,6 +25,7 @@
         </script>
     </head>
     <body>
+        <a href="{% url 'register_schedule' %}">スケジュール登録</a>
         <div id="timeline" style="height: 180px;"></div>
         <p id="Clock"></p>
         <form action = "{% url 'register_activity_record' %}" method="post" name="activity">
