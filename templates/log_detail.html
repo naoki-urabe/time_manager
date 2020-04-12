@@ -31,6 +31,7 @@
                 <th>開始時間</th>
                 <th>終了時間</th>
                 <th>活動時間</th>
+                <th>メモ</th>
             </tr>
             {% for activity in today_activity %}
             <tr>
@@ -38,6 +39,7 @@
             <td>{{activity.begin_time|date:"H:i:s T"}}</td>
             <td>{{activity.end_time|date:"H:i:s T"}}</td>
             <td>{{activity.period}}</td>
+            <td>{{activity.memo}}</td>
             {% endfor %}
         </table>
 

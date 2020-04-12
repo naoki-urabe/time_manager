@@ -5,6 +5,7 @@ class ActiveRecordCreateForm(forms.ModelForm):
         super().__init__(*args,**kwargs)
         self.fields['begin_time'].required = False
         self.fields['end_time'].required = False
+        self.fields['memo'].required = False
         self.fields['today'].required = False
         self.fields['active_type'].required = False
         self.fields['is_active'].widget = forms.HiddenInput()
@@ -23,7 +24,7 @@ class ActiveRecordCreateForm(forms.ModelForm):
         )
     class Meta:
         model = ActiveRecord
-        fields = ('task','begin_time','end_time','today','active_type','is_active')
+        fields = ('task','begin_time','end_time','memo','today','active_type','is_active')
 
 ActiveRecordFormSet = forms.modelformset_factory(
     ActiveRecord,form=ActiveRecordCreateForm, extra=10,max_num=100, can_delete=True,localized_fields='__all__'

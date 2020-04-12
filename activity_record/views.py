@@ -14,44 +14,63 @@ class ActivityRecordView(View):
         active_exists = check_activity_exists("active")
         active_id = get_activity_id(active_exists,"active")
         active_histories = get_activity_histories()
+        active_memo = get_memo(active_id,"active")
         task_exists = check_activity_exists("task")
         task_id = get_activity_id(task_exists,"task")
         task_name = get_task_name(task_id)
+        task_memo = get_memo(task_id,"task")
         active_status = '活動中' if (active_exists) else '睡眠中'
         task_status = '終了' if (task_exists) else '開始'
         context = {
             'active_exists': active_exists,
             'active_id': active_id,
             'active_status': active_status,
+            'active_memo' : active_memo,
             'task_exists': task_exists,
             'task_id': task_id,
             'task_name': task_name,
+            'task_memo' : task_memo,
             'task_status': task_status,
             'today_activity': active_histories,
         }
         return render(request, 'activity_record.html', context)
 class RegisterActivityRecord(View):
     def post(self, request, *args, **kwargs):
-        activity_id=request.POST['activity_id']
-        active_type=request.POST['active_type']
-        if activity_id=='-1':
-            task_name=request.POST['task_name']
-            active_record = ActiveRecord(task=task_name,begin_time=localtime(timezone.now()),today=timezone.now(),today_jst=to_jst(timezone.now()),today_jst_str=to_jst(timezone.now()).strftime('%Y%m%d'),active_type=active_type)
-            print(active_record.today_jst_str)
+        if "punch" in request.POST:
+            activity_id=request.POST['activity_id']
+            active_type=request.POST['active_type']
+            if activity_id=='-1':
+                task_name=request.POST['task_name']
+                active_record = ActiveRecord(task=task_name,begin_time=localtime(timezone.now()),today=timezone.now(),today_jst=to_jst(timezone.now()),today_jst_str=to_jst(timezone.now()).strftime('%Y%m%d'),active_type=active_type,memo="")
+                print(active_record.today_jst_str)
+                active_record.save()
+            else:
+                #memo = request.POST['memo']
+                active_record = ActiveRecord.objects.get(id=activity_id,active_type=active_type)
+                active_record.end_time=localtime(timezone.now())
+                active_record.period = timedelta_to_sec(active_record.end_time - active_record.begin_time)
+                active_record.is_active = False
+                #active_record.memo = memo
+                active_record.save()
+            context = {
+                'active_status': "打刻完了",
+                'now': timezone.now()
+            }
+            return render(request, 'register_active_record.html', context)
+        if "register_memo" in request.POST:
+            activity_id=request.POST['activity_id']
+            active_record = ActiveRecord.objects.filter(id=activity_id).first()
+            active_record.memo = request.POST['memo']
             active_record.save()
-        else:
-            #memo = request.POST['memo']
-            active_record = ActiveRecord.objects.get(id=activity_id,active_type=active_type)
-            active_record.end_time=localtime(timezone.now())
-            active_record.period = timedelta_to_sec(active_record.end_time - active_record.begin_time)
-            active_record.is_active = False
-            #active_record.memo = memo
-            active_record.save()
-        context = {
-            'active_status': "打刻完了",
-            'now': timezone.now()
-        }
-        return render(request, 'register_active_record.html', context)
+            print(request.POST['memo'])
+            print(active_record.memo)
+            print(active_record)
+            context = {
+                'active_status': "メモ登録完了",
+                'now': timezone.now()
+            }
+            return render(request, 'register_active_record.html', context)
+
 class RegisterScheduleView(View):
     def get(self, request, *args, **kwargs):
         print('get')
@@ -138,6 +157,11 @@ def get_task_name(task_id):
     if task_id != -1:
         task_name = ActiveRecord.objects.get(id = task_id,active_type='task').task
     return task_name
+def get_memo(task_id,active_type):
+    task_memo = ""
+    if task_id != -1:
+        task_memo = ActiveRecord.objects.get(id = task_id,active_type=active_type).memo
+    return task_memo
 def get_all_active_logs():
     print('------------------here----------------------')
     all_active_logs = ActiveRecord.objects.filter(active_type='active')

@@ -35,24 +35,33 @@
             <input type="hidden" id="activity_id" name="activity_id" value={{ active_id }}>
             <input type="hidden" id="active_type" name="active_type" value="active">
             <input type="hidden" id="task_name" name="task_name" value="active">
-            <button type="button" id="punch" name="punch">{{ active_status }}</button>
+            <input type="submit" id="punch" name="punch" value={{ active_status }}>
         </form>
+        タスク
         <form action = "{% url 'register_activity_record' %}" method="post" name="task">
             {% csrf_token %}
             <input type="hidden" id="active_exists" name="active_exists" value={{ task_exists }}>
             <input type="hidden" id="activity_id" name="activity_id" value={{ task_id }}>
             <input type="text" id="task_name" name="task_name" value={{ task_name }}>
             <input type="hidden" id="active_type" name="active_type" value="task">
-            <input type="text" id="task_memo" name="task_memo" value="">
-            <button type="button" id="punch2" name="punch2">{{ task_status }}</button>
+            <input type="submit" id="punch" name="punch" value={{ task_status }}>
         </form>
-        
+        {% if task_exists %}
+        MEMO
+        <form action = "{% url 'register_activity_record' %}" method="post" name="task">
+            {% csrf_token %}
+            <input type="hidden" id="activity_id" name="activity_id" value={{ task_id }}>
+            <input type="text" id="memo" name="memo" value={{ task_memo }}>
+            <input type="submit" id="register_memo" name="register_memo" value="登録">
+        </form>
+        {% endif %}
         <table border="1">
             <tr>
                 <th>タスク名</th>
                 <th>開始時間</th>
                 <th>終了時間</th>
                 <th>活動時間</th>
+                <th>メモ</th>
             </tr>
             {% for activity in today_activity %}
             <tr>
@@ -60,9 +69,18 @@
             <td>{{activity.begin_time|date:"H:i:s T"}}</td>
             <td>{{activity.end_time|date:"H:i:s T"}}</td>
             <td>{{activity.period}}</td>
+            <td>{{activity.memo}}</td>
             {% endfor %}
         </table>
-
+        {% if active_exists %}
+        日誌
+        <form action = "{% url 'register_activity_record' %}" method="post" name="task">
+            {% csrf_token %}
+            <input type="hidden" id="activity_id" name="activity_id" value={{ active_id }}>
+            <input type="text" id="memo" name="memo" value={{ active_memo }}>
+            <input type="submit" id="register_memo" name="register_memo" value="登録">
+        </form>
+        {% endif %}
     </body>
     <script src="{% static 'js/getNow.js' %}"></script>
     <script>
