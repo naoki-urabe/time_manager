@@ -1,0 +1,46 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+    <head>
+        
+        <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+        <script type="text/javascript">
+          google.charts.load('current', {'packages':['timeline']});
+          google.charts.setOnLoadCallback(drawChart);
+          async function drawChart() {
+            var container = await document.getElementById('timeline');
+            var chart = await new google.visualization.Timeline(container);
+            var dataTable = new google.visualization.DataTable();
+    
+            dataTable.addColumn({ type: 'string', id: 'President' });
+            dataTable.addColumn({ type: 'date', id: 'Start' });
+            dataTable.addColumn({ type: 'date', id: 'End' });
+            dataTable.addRows([
+              [ 'Washington', new Date(1789, 3, 30), new Date(1797, 2, 4) ],
+              [ 'Adams',      new Date(1797, 2, 4),  new Date(1801, 2, 4) ],
+              [ 'Jefferson',  new Date(1801, 2, 4),  new Date(1809, 2, 4) ]]);
+    
+            chart.draw(dataTable);
+          }
+        </script>
+    </head>
+    <body>
+        <table border="1">
+            <tr>
+                <th>タスク名</th>
+                <th>開始時間</th>
+                <th>終了時間</th>
+                <th>活動時間</th>
+            </tr>
+            {% for activity in today_activity %}
+            <tr>
+            <td>{{activity.task}}</td>
+            <td>{{activity.begin_time|date:"H:i:s T"}}</td>
+            <td>{{activity.end_time|date:"H:i:s T"}}</td>
+            <td>{{activity.period}}</td>
+            {% endfor %}
+        </table>
+
+    </body>
+</html>
+

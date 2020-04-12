@@ -6,16 +6,17 @@ from django.utils.timezone import localtime
 import datetime
 from time import mktime
 from .forms import ActiveRecordFormSet
+import re
 
 # Create your views here.
 class ActivityRecordView(View):
     def get(self, request, *args, **kwargs):
-        active_exists = self.check_activity_exists("active")
-        active_id = self.get_activity_id(active_exists,"active")
-        active_histories = self.get_activity_histories()
-        task_exists = self.check_activity_exists("task")
-        task_id = self.get_activity_id(task_exists,"task")
-        task_name = self.get_task_name(task_id)
+        active_exists = check_activity_exists("active")
+        active_id = get_activity_id(active_exists,"active")
+        active_histories = get_activity_histories()
+        task_exists = check_activity_exists("task")
+        task_id = get_activity_id(task_exists,"task")
+        task_name = get_task_name(task_id)
         active_status = '活動中' if (active_exists) else '睡眠中'
         task_status = '終了' if (task_exists) else '開始'
         context = {
@@ -29,36 +30,22 @@ class ActivityRecordView(View):
             'today_activity': active_histories,
         }
         return render(request, 'activity_record.html', context)
-    def check_activity_exists(self,active_type):
-        activity_exists = ActiveRecord.objects.filter(is_active=True,active_type=active_type,today_jst=localtime(timezone.now())).exists()
-        return activity_exists    
-    def get_activity_histories(self):
-        activity_histories = ActiveRecord.objects.filter(today_jst=localtime(timezone.now()))
-        return activity_histories
-    def get_activity_id(self,active_exists,active_type):
-        active_id = -1
-        if active_exists:
-            active_id =  ActiveRecord.objects.get(today_jst=to_jst(timezone.now()),is_active=True,active_type=active_type).id
-        return active_id
-    def get_task_name(self,task_id):
-        task_name = ""
-        if task_id != -1:
-            task_name = ActiveRecord.objects.get(id = task_id,active_type='task').task
-        return task_name
 class RegisterActivityRecord(View):
     def post(self, request, *args, **kwargs):
         activity_id=request.POST['activity_id']
         active_type=request.POST['active_type']
         if activity_id=='-1':
             task_name=request.POST['task_name']
-            active_record = ActiveRecord(task=task_name,begin_time=localtime(timezone.now()),today=timezone.now(),today_jst=to_jst(timezone.now()),active_type=active_type)
+            active_record = ActiveRecord(task=task_name,begin_time=localtime(timezone.now()),today=timezone.now(),today_jst=to_jst(timezone.now()),today_jst_str=to_jst(timezone.now()).strftime('%Y%m%d'),active_type=active_type)
+            print(active_record.today_jst_str)
             active_record.save()
         else:
+            #memo = request.POST['memo']
             active_record = ActiveRecord.objects.get(id=activity_id,active_type=active_type)
             active_record.end_time=localtime(timezone.now())
             active_record.period = timedelta_to_sec(active_record.end_time - active_record.begin_time)
             active_record.is_active = False
-            active_record.today_jst = to_jst(timezone.now())
+            #active_record.memo = memo
             active_record.save()
         context = {
             'active_status': "打刻完了",
@@ -75,10 +62,31 @@ class RegisterScheduleView(View):
         return render(request,'register_schedule.html', context)
         
     def post(self, request, *args, **kwargs):
-        print(request.POST)
-        formset = ActiveRecordFormSet(request.POST or None)
+        formset = ActiveRecordFormSet(request.POST or None, queryset=ActiveRecord.objects.filter(begin_time__lte=localtime(timezone.now())))
+        print('----------------------------hello------------------------------------')
+            #print(formset)
         if formset.is_valid():
-            formset.save() 
+            
+            for form in formset:
+                schedule = form.save(commit=False)
+                if schedule.task == None:
+                    continue
+                if schedule.active_type == "schedule":
+                    schedule = form.save(commit=False)
+                    print('im here')
+                    if not re.search('(予)',schedule.task):
+                        schedule.task = schedule.task + '(予)'
+                    if not schedule.today:
+                        schedule.today_jst = schedule.today.date
+                    if not schedule.today_jst:
+                        schedule.today_jst_str = schedule.today.date().strftime('%Y%m%d')
+                    schedule.is_active = False
+                    form.save()
+                else:
+                    form.save()
+            #for obj in formset.deleted_objects:
+                #obj.delete()
+            formset = ActiveRecordFormSet()
             context = {
                 'register_success_msg':"登録完了",
                 'formset':formset
@@ -90,12 +98,53 @@ class RegisterScheduleView(View):
                 'formset':formset
             }
             return render(request, 'register_schedule.html',context)
+class ActivityLogView(View):
+    def get(self, request, *args, **kwargs):
+        all_active_logs = get_all_active_logs()
+        context = {
+                'all_active_logs':all_active_logs
+            }
+        return render(request, 'show_logs.html',context)
+class ActivityDetailView(View):
+    def get(self, request,today_jst_str, *args, **kwargs):
+        active_histories = ActiveRecord.objects.filter(today_jst_str=today_jst_str)
+        print(active_histories)
+        context = {
+            'today_activity': active_histories,
+        }
+        return render(request, 'log_detail.html', context)
 def to_jst(time):
     print((time + datetime.timedelta(hours=9)).date())
     return (time + datetime.timedelta(hours=9)).date()
+def to_utc(time):
+    print(time - datetime.timedelta(hours=9))
+    return time - datetime.timedelta(hours=9)
 def timedelta_to_sec(timedelta):
     sec = timedelta.days*86400 + timedelta.seconds
     return sec
+def check_activity_exists(active_type):
+        activity_exists = ActiveRecord.objects.filter(is_active=True,active_type=active_type,today_jst=localtime(timezone.now())).exists()
+        return activity_exists    
+def get_activity_histories():
+    activity_histories = ActiveRecord.objects.filter(today_jst=localtime(timezone.now()))
+    return activity_histories
+def get_activity_id(active_exists,active_type):
+    active_id = -1
+    if active_exists:
+        active_id =  ActiveRecord.objects.get(today_jst=to_jst(timezone.now()),is_active=True,active_type=active_type).id
+    return active_id
+def get_task_name(task_id):
+    task_name = ""
+    if task_id != -1:
+        task_name = ActiveRecord.objects.get(id = task_id,active_type='task').task
+    return task_name
+def get_all_active_logs():
+    print('------------------here----------------------')
+    all_active_logs = ActiveRecord.objects.filter(active_type='active')
+    print(all_active_logs)
+    return all_active_logs
 activity_record = ActivityRecordView.as_view()
 register_activity_record = RegisterActivityRecord.as_view()
 register_schedule = RegisterScheduleView.as_view()
+activity_log = ActivityLogView.as_view()
+activity_detail = ActivityDetailView.as_view()

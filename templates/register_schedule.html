@@ -1,0 +1,18 @@
+{{ register_success_msg }}
+<form action="" method="post">
+{% csrf_token %}
+    {% for form in formset %}
+        タスク名:{{ form.task }}
+        開始時間{{ form.begin_time }}
+        終了時間{{ form.end_time }}
+        日付{{ form.today }}
+        活動タイプ{{ form.active_type }}
+        削除{{ form.DELETE }}<br>
+        {% for field in form.hidden_fields %}
+            {{ field }}
+        {% endfor %}
+    {% endfor %}
+
+    {{ formset.management_form }} 
+    <input type="submit" value="送信">
+</form>

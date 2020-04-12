@@ -9,5 +9,7 @@ class ActiveRecord(models.Model):
     period = models.fields.FloatField(null=True)
     today = models.fields.DateTimeField(null=True)
     today_jst = models.fields.DateField(null=True)
+    today_jst_str = models.CharField(null=True, max_length=20)
     is_active = models.fields.BooleanField(default = True)
     active_type = models.CharField(verbose_name='タスクタイプ', max_length=10,null=True)
+    memo = models.CharField(verbose_name='メモ', max_length=100,null=True)
