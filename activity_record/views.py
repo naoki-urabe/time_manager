@@ -49,6 +49,8 @@ class RegisterActivityRecord(View):
                 active_record = ActiveRecord.objects.get(id=activity_id,active_type=active_type)
                 active_record.end_time=localtime(timezone.now())
                 active_record.period = timedelta_to_sec(active_record.end_time - active_record.begin_time)
+                active_record.format_period = format_timedelta(active_record.period)
+                print("format period "+active_record.format_period)
                 active_record.is_active = False
                 #active_record.memo = memo
                 active_record.save()
@@ -138,6 +140,11 @@ def to_jst(time):
 def to_utc(time):
     print(time - datetime.timedelta(hours=9))
     return time - datetime.timedelta(hours=9)
+def format_timedelta(sec):
+    hours=sec//3600
+    minutes=(sec%3600)//60
+    seconds=(sec%3600)%60
+    return "{0:02d}:{1:02d}:{2:02d}".format(hours,minutes,seconds)
 def timedelta_to_sec(timedelta):
     sec = timedelta.days*86400 + timedelta.seconds
     return sec

@@ -7,6 +7,7 @@ class ActiveRecord(models.Model):
     begin_time = models.fields.DateTimeField(null=True)
     end_time = models.fields.DateTimeField(null=True)
     period = models.fields.FloatField(null=True)
+    format_period = models.fields.CharField(null=True, max_length=20)
     today = models.fields.DateTimeField(null=True)
     today_jst = models.fields.DateField(null=True)
     today_jst_str = models.CharField(null=True, max_length=20)
