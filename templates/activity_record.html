@@ -36,8 +36,10 @@
             <input type="hidden" id="active_type" name="active_type" value="active">
             <input type="hidden" id="task_name" name="task_name" value="active">
             {% if not todays_active_exists or active_exists %}
+                <button type="submit" id="punch" name="punch" value={{ active_status }}>{{ active_status }}</button>
                 <input type="submit" id="punch" name="punch" value={{ active_status }}>
             {% else %}
+                <button type="submit" id="punch" name="punch" value={{ active_status }} disabled>{{ active_status }}</button>
                 <input type="submit" id="punch" name="punch" value={{ active_status }} disabled>
             {% endif %}
         </form>
@@ -48,6 +50,7 @@
             <input type="hidden" id="activity_id" name="activity_id" value={{ task_id }}>
             <input type="text" id="task_name" name="task_name" value={{ task_name }}>
             <input type="hidden" id="active_type" name="active_type" value="task">
+            <button type="submit" id="punch" name="punch" value={{ task_status }}>{{ task_status }}</button>
             <input type="submit" id="punch" name="punch" value={{ task_status }}>
         </form>
         {% if task_exists %}
@@ -90,6 +93,10 @@
     <script src="{% static 'js/getNow.js' %}"></script>
     <script>
         setInterval(getNow,1000);
+        document.getElementById('punch').onclick() = function(){
+            document.getElementById('punch').disabled = true;
+            document.punch.submit();
+        }
     </script>
 </html>
 
