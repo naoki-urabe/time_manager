@@ -17,7 +17,7 @@
            
             dataTable.addRows([  
             {% for activity in today_activity %}        
-            ["{{activity.task}}",new Date("{{ activity.begin_time.isoformat }}"), new Date("{{ activity.end_time.isoformat }}")],          
+                ["{{activity.task}}",new Date("{{ activity.begin_time.isoformat }}"), new Date("{{ activity.end_time.isoformat }}")],          
             {% endfor %}       
             ]);
             chart.draw(dataTable);
@@ -35,7 +35,11 @@
             <input type="hidden" id="activity_id" name="activity_id" value={{ active_id }}>
             <input type="hidden" id="active_type" name="active_type" value="active">
             <input type="hidden" id="task_name" name="task_name" value="active">
-            <input type="submit" id="punch" name="punch" value={{ active_status }}>
+            {% if not todays_active_exists or active_exists %}
+                <input type="submit" id="punch" name="punch" value={{ active_status }}>
+            {% else %}
+                <input type="submit" id="punch" name="punch" value={{ active_status }} disabled>
+            {% endif %}
         </form>
         タスク
         <form action = "{% url 'register_activity_record' %}" method="post" name="task">
@@ -86,15 +90,6 @@
     <script src="{% static 'js/getNow.js' %}"></script>
     <script>
         setInterval(getNow,1000);
-        //console.log(getNow)
-        document.getElementById("punch").onclick = function() {      
-            //document.getElementById("active_status").value = '{{ active_status }}'
-            document.activity.submit()
-        }
-        document.getElementById("punch2").onclick = function() {      
-            //document.getElementById("active_status").value = '{{ active_status }}'
-            document.task.submit()
-        }
     </script>
 </html>
 

@@ -12,6 +12,7 @@ import re
 class ActivityRecordView(View):
     def get(self, request, *args, **kwargs):
         active_exists = check_activity_exists("active")
+        todays_active_exists = check_todays_active_exists()
         active_id = get_activity_id(active_exists,"active")
         active_histories = get_activity_histories()
         active_memo = get_memo(active_id,"active")
@@ -23,6 +24,7 @@ class ActivityRecordView(View):
         task_status = '終了' if (task_exists) else '開始'
         context = {
             'active_exists': active_exists,
+            'todays_active_exists': todays_active_exists,
             'active_id': active_id,
             'active_status': active_status,
             'active_memo' : active_memo,
@@ -149,8 +151,11 @@ def timedelta_to_sec(timedelta):
     sec = timedelta.days*86400 + timedelta.seconds
     return sec
 def check_activity_exists(active_type):
-        activity_exists = ActiveRecord.objects.filter(is_active=True,active_type=active_type,today_jst=localtime(timezone.now())).exists()
-        return activity_exists    
+    activity_exists = ActiveRecord.objects.filter(is_active=True,active_type=active_type,today_jst=localtime(timezone.now())).exists()
+    return activity_exists    
+def check_todays_active_exists():
+    todays_active_exists = ActiveRecord.objects.filter(active_type="active",today_jst=localtime(timezone.now())).exists()
+    return todays_active_exists       
 def get_activity_histories():
     activity_histories = ActiveRecord.objects.filter(today_jst=localtime(timezone.now()))
     return activity_histories
