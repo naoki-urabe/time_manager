@@ -90,7 +90,7 @@
     <script src="{% static 'js/getNow.js' %}"></script>
     <script>
         setInterval(getNow,1000);
-        document.getElementById('punch').onclick() = function(){
+        document.getElementById('punch').onclick = function(){
             document.getElementById('punch').setAttribute("disabled",true);
             document.punch.submit();
         }
