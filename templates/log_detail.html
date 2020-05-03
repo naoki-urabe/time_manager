@@ -17,9 +17,7 @@
            
             dataTable.addRows([  
             {% for activity in today_activity %}
-                {% if activity.active_type != 'active' %}     
-                    ["{{activity.task}}",new Date("{{ activity.begin_time.isoformat }}"), new Date("{{ activity.end_time.isoformat }}")], 
-                {% endif %}         
+                ["{{activity.task}}",new Date("{{ activity.begin_time.isoformat }}"), new Date("{{ activity.end_time.isoformat }}")], 
             {% endfor %}       
             ]);
             chart.draw(dataTable);
