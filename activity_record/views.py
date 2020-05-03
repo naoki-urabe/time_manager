@@ -66,9 +66,6 @@ class RegisterActivityRecord(View):
             active_record = ActiveRecord.objects.filter(id=activity_id).first()
             active_record.memo = request.POST['memo']
             active_record.save()
-            print(request.POST['memo'])
-            print(active_record.memo)
-            print(active_record)
             context = {
                 'active_status': "メモ登録完了",
                 'now': timezone.now()
@@ -77,7 +74,6 @@ class RegisterActivityRecord(View):
 
 class RegisterScheduleView(View):
     def get(self, request, *args, **kwargs):
-        print('get')
         formset = ActiveRecordFormSet()
         context = {
         'formset':formset
@@ -86,8 +82,6 @@ class RegisterScheduleView(View):
         
     def post(self, request, *args, **kwargs):
         formset = ActiveRecordFormSet(request.POST or None, queryset=ActiveRecord.objects.filter(begin_time__lte=localtime(timezone.now())))
-        print('----------------------------hello------------------------------------')
-            #print(formset)
         if formset.is_valid():
             
             for form in formset:
@@ -175,7 +169,6 @@ def get_memo(task_id,active_type):
         task_memo = ActiveRecord.objects.get(id = task_id,active_type=active_type).memo
     return task_memo
 def get_all_active_logs():
-    print('------------------here----------------------')
     all_active_logs = ActiveRecord.objects.filter(active_type='active')
     print(all_active_logs)
     return all_active_logs
