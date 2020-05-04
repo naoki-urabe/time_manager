@@ -14,3 +14,16 @@ class ActiveRecord(models.Model):
     is_active = models.fields.BooleanField(default = True)
     active_type = models.CharField(verbose_name='タスクタイプ', max_length=10,null=True)
     memo = models.CharField(verbose_name='メモ', max_length=100,null=True)
+
+class Subject(models.Model):
+    subject = models.CharField(null=True, max_length=20)
+    gear = models.fields.IntegerField(null=True)
+    latest = models.fields.IntegerField(null=True)
+
+class KujiLog(models.Model):
+    gear_log = models.fields.IntegerField(null=True)
+    cycle_log = models.fields.IntegerField(null=True)
+    latest_ver = models.fields.IntegerField(null=True)
+    today = models.fields.DateTimeField(null=True)
+    subject = models.CharField(null=True, max_length=20)
+    today_jst_str = models.CharField(null=True, max_length=20)

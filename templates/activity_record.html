@@ -45,6 +45,14 @@
             {% endif %}
         </form>
         タスク
+        <form action = "" method="post" name="kuji">
+            {% csrf_token %}
+            <input type="text" id="gear" name="gear" value={{ gear }}>
+            <input type="hidden" id="kuji" name="kuji" value="kuji">
+            <input type="hidden" id="active_status" name="active_status" value={{ active_status }}>
+            <input type="hidden" id="task_status" name="task_status" value={{ task_status }}>
+            <input type="submit" id="send_kuji" name="send_kuji" value="くじ">
+        </form>
         <form action = "{% url 'register_activity_record' %}" method="post" name="task">
             {% csrf_token %}
             <input type="hidden" id="active_exists" name="active_exists" value={{ task_exists }}>
