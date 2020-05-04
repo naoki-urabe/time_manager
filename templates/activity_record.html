@@ -17,7 +17,7 @@
            
             dataTable.addRows([  
             {% for activity in today_activity %}
-                {% if activity.active_type != 'active' %}     
+                {% if activity.active_type != 'active' and activity.is_active != True %}     
                     ["{{activity.task}}",new Date("{{ activity.begin_time.isoformat }}"), new Date("{{ activity.end_time.isoformat }}")], 
                 {% endif %}         
             {% endfor %}       
@@ -44,7 +44,8 @@
                 <button type="submit" id="punch" name="punch" value={{ active_status }} disabled>{{ active_status }}</button>
             {% endif %}
         </form>
-        タスク
+        タスク<br>
+        前回くじ引き:{{ latest_kuji_log.today|date:"m/d H:i:s T" }}
         <form action = "" method="post" name="kuji">
             {% csrf_token %}
             <input type="text" id="gear" name="gear" value={{ gear }}>

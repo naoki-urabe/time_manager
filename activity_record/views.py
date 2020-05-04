@@ -24,6 +24,7 @@ class ActivityRecordView(View):
         task_memo = get_memo(task_id,"task")
         active_status = '活動中' if (active_exists) else '睡眠中'
         task_status = '終了' if (task_exists) else '開始'
+        latest_kuji_log = KujiLog.objects.all().order_by('-today').first()
         context = {
             'active_exists': active_exists,
             'todays_active_exists': todays_active_exists,
@@ -36,6 +37,8 @@ class ActivityRecordView(View):
             'task_memo' : task_memo,
             'task_status': task_status,
             'today_activity': active_histories,
+            'latest_kuji_log': latest_kuji_log,
+            'gear': latest_kuji_log.gear_log
         }
         return render(request, 'activity_record.html', context)
     def post(self, request, *args, **kwargs):
@@ -89,6 +92,7 @@ class ActivityRecordView(View):
                 'task_id': task_id,
                 'task_memo' : task_memo,
                 'today_activity': active_histories,
+                'latest_kuji_log': latest_kuji_log
             }
             return render(request, 'activity_record.html', context)
 class RegisterActivityRecord(View):
