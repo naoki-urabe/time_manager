@@ -38,7 +38,8 @@ class ActivityRecordView(View):
             'task_status': task_status,
             'today_activity': active_histories,
             'latest_kuji_log': latest_kuji_log,
-            'gear': latest_kuji_log.gear_log
+            'gear': latest_kuji_log.gear_log,
+            'subject_logs': None
         }
         return render(request, 'activity_record.html', context)
     def post(self, request, *args, **kwargs):
@@ -50,7 +51,6 @@ class ActivityRecordView(View):
             active_memo = get_memo(active_id,"active")
             task_exists = check_activity_exists("task")
             task_id = get_activity_id(task_exists,"task")
-            task_name = get_task_name(task_id)
             task_memo = get_memo(task_id,"task")
             gear = int(request.POST['gear'])
             subjects = Subject.objects.filter(gear=gear,latest=0)
@@ -68,6 +68,8 @@ class ActivityRecordView(View):
             selected_subject = subjects.order_by('?').first()
             selected_subject.latest = n-query_count+1
             selected_subject.save()
+            subject_logs = ActiveRecord.objects.filter(task=selected_subject.subject).order_by('-today')[:3]
+            print(subject_logs)
             latest_kuji_log = KujiLog.objects.all().order_by('-today').first()
             if latest_kuji_log is None:
                 KujiLog.objects.create(gear_log=gear,cycle_log=1,latest_ver=1,today=timezone.now(),subject=selected_subject.subject,today_jst_str=to_jst(timezone.now()).strftime('%Y%m%d'))
@@ -92,7 +94,8 @@ class ActivityRecordView(View):
                 'task_id': task_id,
                 'task_memo' : task_memo,
                 'today_activity': active_histories,
-                'latest_kuji_log': latest_kuji_log
+                'latest_kuji_log': latest_kuji_log,
+                'subject_logs': subject_logs
             }
             return render(request, 'activity_record.html', context)
 class RegisterActivityRecord(View):

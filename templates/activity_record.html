@@ -64,6 +64,21 @@
             <input type="hidden" id="punch" name="punch" value="task">
             <button type="submit" id="punch" name="punch" value={{ task_status }}>{{ task_status }}</button>
         </form>
+        過去ログ
+        <table border="1">
+            <tr>
+                <th>科目</th>
+                <th>実施時刻</th>
+                <th>メモ</th>
+            </tr>
+            {% for subject in subject_logs %}
+                <tr>
+                    <td>{{ subject.task }}</td>
+                    <td>{{ subject.begin_time| date:"m/d H:i:s T" }}</td>
+                    <td>{{ subject.memo }}</td>
+                </tr>
+            {% endfor %}    
+        </table>
         {% if task_exists %}
         MEMO
         <form action = "{% url 'register_activity_record' %}" method="post" name="task">
@@ -83,11 +98,12 @@
             </tr>
             {% for activity in today_activity %}
             <tr>
-            <td>{{activity.task}}</td>
-            <td>{{activity.begin_time|date:"H:i:s T"}}</td>
-            <td>{{activity.end_time|date:"H:i:s T"}}</td>
-            <td>{{activity.format_period}}</td>
-            <td>{{activity.memo}}</td>
+                <td>{{activity.task}}</td>
+                <td>{{activity.begin_time|date:"H:i:s T"}}</td>
+                <td>{{activity.end_time|date:"H:i:s T"}}</td>
+                <td>{{activity.format_period}}</td>
+                <td>{{activity.memo}}</td>
+            </tr>
             {% endfor %}
         </table>
         {% if active_exists %}
