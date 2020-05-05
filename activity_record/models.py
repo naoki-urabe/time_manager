@@ -13,7 +13,7 @@ class ActiveRecord(models.Model):
     today_jst_str = models.CharField(null=True, max_length=20)
     is_active = models.fields.BooleanField(default = True)
     active_type = models.CharField(verbose_name='タスクタイプ', max_length=10,null=True)
-    memo = models.CharField(verbose_name='メモ', max_length=100,null=True)
+    memo = models.CharField(verbose_name='メモ', max_length=800,null=True)
 
 class Subject(models.Model):
     subject = models.CharField(null=True, max_length=20)
