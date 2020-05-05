@@ -136,7 +136,7 @@ class RegisterScheduleView(View):
     def get(self, request, *args, **kwargs):
         formset = ActiveRecordFormSet()
         context = {
-        'formset':formset
+            'formset':formset
         }
         return render(request,'register_schedule.html', context)
         
@@ -190,6 +190,20 @@ class ActivityDetailView(View):
             'today_activity': active_histories,
         }
         return render(request, 'log_detail.html', context)
+class SubjectLogView(View):
+    def get(self, request, *args, **kwargs):
+        subject_logs = None
+        context = {
+            'subject_logs':subject_logs
+        }
+        return render(request, 'subject_log.html',context)
+    def post(self, request, *args, **kwargs):
+        subject = request.POST['subject']
+        subject_logs = ActiveRecord.objects.filter(task=subject).order_by('-today')
+        context = {
+            'subject_logs':subject_logs
+        }
+        return render(request, 'subject_log.html',context)
 def to_jst(time):
     print((time + datetime.timedelta(hours=9)).date())
     return (time + datetime.timedelta(hours=9)).date()
@@ -237,3 +251,4 @@ register_activity_record = RegisterActivityRecord.as_view()
 register_schedule = RegisterScheduleView.as_view()
 activity_log = ActivityLogView.as_view()
 activity_detail = ActivityDetailView.as_view()
+subject_log = SubjectLogView.as_view()

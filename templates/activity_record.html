@@ -29,6 +29,7 @@
     <body>
         <a href="{% url 'register_schedule' %}">スケジュール登録</a>
         <a href="{% url 'activity_log' %}">ログ一覧</a>
+        <a href="{% url 'subject_log' %}">科目過去ログ一覧</a>
         <div id="timeline" style="height: 500px;"></div>
         <p id="Clock"></p>
         <form action = "{% url 'register_activity_record' %}" method="post" name="activity">
