@@ -1,3 +1,4 @@
+<a href="{% url 'activity_record' %}">今日の記録へ</a>
 <form action = "" method="post" name="subject">
     {% csrf_token %}
     <input type="text" id="subject" name="subject" value={{ subject }}>
