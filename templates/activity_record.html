@@ -84,7 +84,7 @@
         <form action = "{% url 'register_activity_record' %}" method="post" name="task">
             {% csrf_token %}
             <input type="hidden" id="activity_id" name="activity_id" value={{ task_id }}>
-            <textarea name="memo" cols="100" rows="1">{{ task_memo }}</textarea>
+            <textarea name="memo" cols="100" rows="5">{{ task_memo }}</textarea>
             <input type="submit" id="register_memo" name="register_memo" value="登録">
         </form>
         {% endif %}
