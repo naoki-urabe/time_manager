@@ -32,17 +32,18 @@
         <a href="{% url 'subject_log' %}">科目過去ログ一覧</a>
         <div id="timeline" style="height: 500px;"></div>
         <p id="Clock"></p>
-        <form action = "{% url 'register_activity_record' %}" method="post" name="activity">
+        <p id="stopwatch"></p>
+        <form action = "" method="post" name="activity">
             {% csrf_token %}
             <input type="hidden" id="active_exists" name="active_exists" value={{ active_exists }}>
             <input type="hidden" id="activity_id" name="activity_id" value={{ active_id }}>
             <input type="hidden" id="active_type" name="active_type" value="active">
             <input type="hidden" id="task_name" name="task_name" value="active">
             <input type="hidden" id="punch" name="punch" value="active">
-            {% if not todays_active_exists or active_exists %}
-                <button type="submit" id="punch" name="punch" value={{ active_status }}>{{ active_status }}</button>
-            {% else %}
+            {% if has_already_today_active %}
                 <button type="submit" id="punch" name="punch" value={{ active_status }} disabled>{{ active_status }}</button>
+            {% else %}
+                <button type="submit" id="punch" name="punch" value={{ active_status }}>{{ active_status }}</button>
             {% endif %}
         </form>
         タスク<br>
@@ -55,7 +56,7 @@
             <input type="hidden" id="task_status" name="task_status" value={{ task_status }}>
             <input type="submit" id="send_kuji" name="send_kuji" value="くじ">
         </form>
-        <form action = "{% url 'register_activity_record' %}" method="post" name="task">
+        <form action = "" method="post" name="task">
             {% csrf_token %}
             <input type="hidden" id="active_exists" name="active_exists" value={{ task_exists }}>
             <input type="hidden" id="activity_id" name="activity_id" value={{ task_id }}>
@@ -81,7 +82,7 @@
         </table>
         {% if task_exists %}
         MEMO
-        <form action = "{% url 'register_activity_record' %}" method="post" name="task">
+        <form action = "" method="post" name="task">
             {% csrf_token %}
             <input type="hidden" id="activity_id" name="activity_id" value={{ task_id }}>
             <textarea name="memo" cols="100" rows="5">{{ task_memo }}</textarea>
@@ -108,7 +109,7 @@
         </table>
         {% if active_exists %}
         日誌
-        <form action = "{% url 'register_activity_record' %}" method="post" name="task">
+        <form action = "" method="post" name="task">
             {% csrf_token %}
             <input type="hidden" id="activity_id" name="activity_id" value={{ active_id }}>
             <textarea name="memo" cols="100" rows="5">{{ active_memo }}</textarea>
@@ -121,8 +122,22 @@
     <script>
         setInterval(getNow,1000);
         document.getElementById('punch').onclick = function(){
+            console.log('timer')
+            var timer=0;
             document.getElementById('punch').setAttribute("disabled",true);
             document.activity.submit();
+            setInterval(count_up(timer),1000);
+        }
+        function count_up(timer){
+
+            var Hour = ('0' + timer/3600).slice(-2);
+            var Min = ('0' + (timer%3600)/60).slice(-2);
+            var Sec = ('0' + (timer%3600)%60).slice(-2);
+            var msg = Hour+":"+Min+":"+Sec
+            console.log(msg);
+            document.getElementById("stopwatch").innerHTML = msg
+            timer++;
+            return timer
         }
     </script>
 </html>
