@@ -13,19 +13,18 @@ import re
 # Create your views here.
 class ActivityRecordView(View):
     def get(self, request, *args, **kwargs):
-        yesterday = (localtime(timezone.now())-datetime.timedelta(days=1)).date()
-        latest_active_record = ActiveRecord.objects.filter(active_type='active',today_jst__gte=yesterday).order_by('-today').first()
+        latest_task_record = ActiveRecord.objects.filter(active_type='task').order_by('-today').first()
+        task_exists = latest_task_record.is_active
+        task_id = latest_task_record.id if task_exists else -1
+        task_name = latest_task_record.task if task_exists else ''
+        task_memo = latest_task_record.memo if task_exists else ''
+        task_status = '終了' if task_exists else '開始'
+        latest_active_record = ActiveRecord.objects.filter(active_type='active').order_by('-today').first()
         active_exists = latest_active_record.is_active
         has_already_today_active =  localtime(timezone.now()).date()==latest_active_record.today_jst and not latest_active_record.is_active
-        active_id = latest_active_record.id if latest_active_record.is_active else -1
-        active_status = '活動中' if latest_active_record.is_active else '睡眠中'
-        active_memo = latest_active_record.memo if latest_active_record.is_active else ''
-        latest_task_record = ActiveRecord.objects.filter(active_type='task',today_jst__gte=yesterday).order_by('-today').first()
-        task_exists = latest_task_record.is_active
-        task_id = latest_task_record.id if latest_task_record.is_active else -1
-        task_name = latest_task_record.task if latest_task_record.is_active else ''
-        task_memo = latest_task_record.memo if latest_task_record.is_active else ''
-        task_status = '終了' if latest_task_record.is_active else '開始'
+        active_id = latest_active_record.id if active_exists else -1
+        active_status = '活動中' if active_exists else '睡眠中'
+        active_memo = latest_active_record.memo if active_exists else ''
         today_activities =  ActiveRecord.objects.filter(today_jst=latest_active_record.today_jst).order_by('-today')
         latest_kuji_log = KujiLog.objects.all().order_by('-today').first()
         subject_logs = ActiveRecord.objects.filter(task=latest_task_record.task).order_by('-today')[:3]
@@ -48,21 +47,22 @@ class ActivityRecordView(View):
         return render(request, 'activity_record.html', context)
     def post(self, request, *args, **kwargs):
         if "kuji" in request.POST:
-            yesterday = (localtime(timezone.now())-datetime.timedelta(days=1)).date()
-            latest_active_record = ActiveRecord.objects.filter(active_type='active',today_jst__gte=yesterday).order_by('-today').first()
+
+            latest_task_record = ActiveRecord.objects.filter(active_type='task').order_by('-today').first()
+            task_exists = latest_task_record.is_active
+            task_id = latest_task_record.id if task_exists else -1
+            task_name = latest_task_record.task if task_exists else ''
+            task_memo = latest_task_record.memo if task_exists else ''
+            task_status = '終了' if task_exists else '開始'
+            latest_active_record = ActiveRecord.objects.filter(active_type='active').order_by('-today').first()
             active_exists = latest_active_record.is_active
             has_already_today_active =  localtime(timezone.now()).date()==latest_active_record.today_jst and not latest_active_record.is_active
-            active_id = latest_active_record.id if latest_active_record.is_active else -1
-            active_status = '活動中' if latest_active_record.is_active else '睡眠中'
-            active_memo = latest_active_record.memo if latest_active_record.is_active else ''
-            latest_task_record = ActiveRecord.objects.filter(active_type='task',today_jst__gte=yesterday).order_by('-today').first()
-            task_exists = latest_task_record.is_active
-            task_id = latest_task_record.id if latest_task_record.is_active else -1
-            task_name = latest_task_record.task if latest_task_record.is_active else ''
-            task_memo = latest_task_record.memo if latest_task_record.is_active else ''
-            task_status = '終了' if latest_task_record.is_active else '開始'
-            latest_kuji_log = KujiLog.objects.all().order_by('-today').first()
+            active_id = latest_active_record.id if active_exists else -1
+            active_status = '活動中' if active_exists else '睡眠中'
+            active_memo = latest_active_record.memo if active_exists else ''
             today_activities =  ActiveRecord.objects.filter(today_jst=latest_active_record.today_jst).order_by('-today')
+            latest_kuji_log = KujiLog.objects.all().order_by('-today').first()
+
             gear = int(request.POST['gear'])
             subjects = Subject.objects.filter(gear=gear,latest=0)
             n = Subject.objects.filter(gear=gear).count()
@@ -79,7 +79,7 @@ class ActivityRecordView(View):
             selected_subject = subjects.order_by('?').first()
             selected_subject.latest = n-query_count+1
             selected_subject.save()
-            subject_logs = ActiveRecord.objects.filter(task=selected_subject.subject).order_by('-today')[:3]
+            subject_logs = ActiveRecord.objects.filter(task=latest_task_record.task).order_by('-today')[:3]
             print(subject_logs)
             latest_kuji_log = KujiLog.objects.all().order_by('-today').first()
             if latest_kuji_log is None:
@@ -128,22 +128,21 @@ class ActivityRecordView(View):
                 active_record.is_active = False
                 #active_record.memo = memo
                 active_record.save()
-            yesterday = (localtime(timezone.now())-datetime.timedelta(days=1)).date()
-            latest_active_record = ActiveRecord.objects.filter(active_type='active',today_jst__gte=yesterday).order_by('-today').first()
+            latest_task_record = ActiveRecord.objects.filter(active_type='task').order_by('-today').first()
+            task_exists = latest_task_record.is_active
+            task_id = latest_task_record.id if task_exists else -1
+            task_name = latest_task_record.task if task_exists else ''
+            task_memo = latest_task_record.memo if task_exists else ''
+            task_status = '終了' if task_exists else '開始'
+            latest_active_record = ActiveRecord.objects.filter(active_type='active').order_by('-today').first()
             active_exists = latest_active_record.is_active
             has_already_today_active =  localtime(timezone.now()).date()==latest_active_record.today_jst and not latest_active_record.is_active
-            active_id = latest_active_record.id if latest_active_record.is_active else -1
-            active_status = '活動中' if latest_active_record.is_active else '睡眠中'
-            active_memo = latest_active_record.memo if latest_active_record.is_active else ''
-            latest_task_record = ActiveRecord.objects.filter(active_type='task',today_jst__gte=yesterday).order_by('-today').first()
-            task_exists = latest_task_record.is_active
-            task_id = latest_task_record.id if latest_task_record.is_active else -1
-            task_name = latest_task_record.task if latest_task_record.is_active else ''
-            task_memo = latest_task_record.memo if latest_task_record.is_active else ''
-            task_status = '終了' if latest_task_record.is_active else '開始'
+            active_id = latest_active_record.id if active_exists else -1
+            active_status = '活動中' if active_exists else '睡眠中'
+            active_memo = latest_active_record.memo if active_exists else ''
+            today_activities =  ActiveRecord.objects.filter(today_jst=latest_active_record.today_jst).order_by('-today')
             latest_kuji_log = KujiLog.objects.all().order_by('-today').first()
             subject_logs = ActiveRecord.objects.filter(task=latest_task_record.task).order_by('-today')[:3]
-            today_activities =  ActiveRecord.objects.filter(today_jst=latest_active_record.today_jst).order_by('-today') 
             context = {
                 'active_exists': active_exists,
                 'has_already_today_active': has_already_today_active,
@@ -166,21 +165,21 @@ class ActivityRecordView(View):
             active_record = ActiveRecord.objects.filter(id=activity_id).first()
             active_record.memo = request.POST['memo']
             active_record.save()
-            yesterday = (localtime(timezone.now())-datetime.timedelta(days=1)).date()
-            latest_active_record = ActiveRecord.objects.filter(active_type='active',today_jst__gte=yesterday).order_by('-today').first()
+            latest_task_record = ActiveRecord.objects.filter(active_type='task').order_by('-today').first()
+            task_exists = latest_task_record.is_active
+            task_id = latest_task_record.id if task_exists else -1
+            task_name = latest_task_record.task if task_exists else ''
+            task_memo = latest_task_record.memo if task_exists else ''
+            task_status = '終了' if task_exists else '開始'
+            latest_active_record = ActiveRecord.objects.filter(active_type='active').order_by('-today').first()
             active_exists = latest_active_record.is_active
             has_already_today_active =  localtime(timezone.now()).date()==latest_active_record.today_jst and not latest_active_record.is_active
-            active_id = latest_active_record.id if latest_active_record.is_active else -1
-            active_status = '活動中' if latest_active_record.is_active else '睡眠中'
-            active_memo = latest_active_record.memo if latest_active_record.is_active else ''
-            latest_task_record = ActiveRecord.objects.filter(active_type='task',today_jst__gte=yesterday).order_by('-today').first()
-            task_exists = latest_task_record.is_active
-            task_id = latest_task_record.id if latest_task_record.is_active else -1
-            task_name = latest_task_record.task if latest_task_record.is_active else ''
-            task_memo = latest_task_record.memo if latest_task_record.is_active else ''
-            task_status = '終了' if latest_task_record.is_active else '開始'
+            active_id = latest_active_record.id if active_exists else -1
+            active_status = '活動中' if active_exists else '睡眠中'
+            active_memo = latest_active_record.memo if active_exists else ''
+            today_activities =  ActiveRecord.objects.filter(today_jst=latest_active_record.today_jst).order_by('-today')
             latest_kuji_log = KujiLog.objects.all().order_by('-today').first()
-            today_activities =  ActiveRecord.objects.filter(today_jst=latest_active_record.today_jst).order_by('-today') 
+
             context = {
                 'active_exists': active_exists,
                 'has_already_today_active': has_already_today_active,
