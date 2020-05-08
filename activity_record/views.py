@@ -27,7 +27,7 @@ class ActivityRecordView(View):
         active_memo = latest_active_record.memo if active_exists else ''
         today_activities =  ActiveRecord.objects.filter(today_jst=latest_active_record.today_jst).order_by('-today')
         latest_kuji_log = KujiLog.objects.all().order_by('-today').first()
-        subject_logs = ActiveRecord.objects.filter(task=latest_task_record.task).order_by('-today')[:3]
+        subject_logs = ActiveRecord.objects.filter(task=latest_task_record.task).order_by('-today')[:3] if task_name!='' else None
         context = {
             'active_exists': active_exists,
             'has_already_today_active': has_already_today_active,
@@ -79,7 +79,7 @@ class ActivityRecordView(View):
             selected_subject = subjects.order_by('?').first()
             selected_subject.latest = n-query_count+1
             selected_subject.save()
-            subject_logs = ActiveRecord.objects.filter(task=latest_task_record.task).order_by('-today')[:3]
+            subject_logs = ActiveRecord.objects.filter(task=latest_task_record.task).order_by('-today')[:3] if task_name!='' else None
             print(subject_logs)
             latest_kuji_log = KujiLog.objects.all().order_by('-today').first()
             if latest_kuji_log is None:
@@ -142,7 +142,7 @@ class ActivityRecordView(View):
             active_memo = latest_active_record.memo if active_exists else ''
             today_activities =  ActiveRecord.objects.filter(today_jst=latest_active_record.today_jst).order_by('-today')
             latest_kuji_log = KujiLog.objects.all().order_by('-today').first()
-            subject_logs = ActiveRecord.objects.filter(task=latest_task_record.task).order_by('-today')[:3]
+            subject_logs = ActiveRecord.objects.filter(task=latest_task_record.task).order_by('-today')[:3] if task_name!='' else None
             context = {
                 'active_exists': active_exists,
                 'has_already_today_active': has_already_today_active,
@@ -179,7 +179,7 @@ class ActivityRecordView(View):
             active_memo = latest_active_record.memo if active_exists else ''
             today_activities =  ActiveRecord.objects.filter(today_jst=latest_active_record.today_jst).order_by('-today')
             latest_kuji_log = KujiLog.objects.all().order_by('-today').first()
-
+            subject_logs = ActiveRecord.objects.filter(task=latest_task_record.task).order_by('-today')[:3] if task_name!='' else None
             context = {
                 'active_exists': active_exists,
                 'has_already_today_active': has_already_today_active,
@@ -194,7 +194,7 @@ class ActivityRecordView(View):
                 'today_activity': today_activities,
                 'latest_kuji_log': latest_kuji_log,
                 'gear': latest_kuji_log.gear_log,
-                'subject_logs': None
+                'subject_logs': subject_logs
             }
             return render(request, 'activity_record.html', context)
 class RegisterScheduleView(View):
