@@ -39,7 +39,13 @@
             <input type="hidden" id="activity_id" name="activity_id" value={{ active_id }}>
             <input type="hidden" id="active_type" name="active_type" value="active">
             <input type="hidden" id="task_name" name="task_name" value="active">
-            <input type="hidden" id="punch" name="punch" value="active">
+            {% if active_id != -1 %}
+                <details>
+                    <summary>日誌</summary>
+                        <textarea name="memo" cols="100" rows="5">{{ active_memo }}</textarea>
+                        <button type="submit" id="register_memo" name="register_memo" value="登録">登録</button>
+                </details>
+            {% endif %}
             {% if has_already_today_active %}
                 <button type="submit" id="punch" name="punch" value={{ active_status }} disabled>{{ active_status }}</button>
             {% else %}
@@ -62,8 +68,14 @@
             <input type="hidden" id="activity_id" name="activity_id" value={{ task_id }}>
             <input type="text" id="task_name" name="task_name" value={{ task_name }}>
             <input type="hidden" id="active_type" name="active_type" value="task">
-            <input type="hidden" id="punch" name="punch" value="task">
-            <button type="submit" id="punch" name="punch" value={{ task_status }}>{{ task_status }}</button>
+            <input type="hidden" id="button_type" name="button_type" value="">
+            <button type="submit" id="punch" name="punch">{{ task_status }}</button>
+            <br>
+            {% if task_exists %}
+                 MEMO<br>
+                <textarea name="memo" cols="100" rows="5">{{ task_memo }}</textarea>
+                <button type="submit" id="register_memo" name="register_memo">登録</button>
+            {% endif %}
         </form>
         過去ログ
         <table border="1">
@@ -80,15 +92,6 @@
                 </tr>
             {% endfor %}    
         </table>
-        {% if task_exists %}
-        MEMO
-        <form action = "" method="post" name="task">
-            {% csrf_token %}
-            <input type="hidden" id="activity_id" name="activity_id" value={{ task_id }}>
-            <textarea name="memo" cols="100" rows="5">{{ task_memo }}</textarea>
-            <input type="submit" id="register_memo" name="register_memo" value="登録">
-        </form>
-        {% endif %}
         <table border="1">
             <tr>
                 <th>タスク名</th>
@@ -107,24 +110,21 @@
             </tr>
             {% endfor %}
         </table>
-        {% if active_exists %}
-        日誌
-        <form action = "" method="post" name="task">
-            {% csrf_token %}
-            <input type="hidden" id="activity_id" name="activity_id" value={{ active_id }}>
-            <textarea name="memo" cols="100" rows="5">{{ active_memo }}</textarea>
-            
-            <input type="submit" id="register_memo" name="register_memo" value="登録">
-        </form>
-        {% endif %}
     </body>
     <script src="{% static 'js/getNow.js' %}"></script>
     <script>
         setInterval(getNow,1000);
         document.getElementById('punch').onclick = function(){
             console.log('timer')
+            document.getElementById('button_type').value = 'punch';
+            document.activity.submit();
+            setInterval(count_up(timer),1000);
+        }
+        document.getElementById('register_memo').onclick = function(){
+            console.log('timer')
             var timer=0;
             document.getElementById('punch').setAttribute("disabled",true);
+            document.getElementById('button_type').value = 'register_memo';
             document.activity.submit();
             setInterval(count_up(timer),1000);
         }

@@ -8,11 +8,13 @@ from django.utils.timezone import localtime
 import datetime
 from time import mktime
 from .forms import ActiveRecordFormSet
+from .forms import ActiveRecordForm
 import re
 
 # Create your views here.
 class ActivityRecordView(View):
     def get(self, request, *args, **kwargs):
+        
         latest_task_record = ActiveRecord.objects.filter(active_type='task').order_by('-today').first()
         task_exists = latest_task_record.is_active
         task_id = latest_task_record.id if task_exists else -1
@@ -28,6 +30,22 @@ class ActivityRecordView(View):
         today_activities =  ActiveRecord.objects.filter(today_jst=latest_active_record.today_jst).order_by('-today')
         latest_kuji_log = KujiLog.objects.all().order_by('-today').first()
         subject_logs = ActiveRecord.objects.filter(task=latest_task_record.task).order_by('-today')[:3] if task_name!='' else None
+        active_form = ActiveRecordForm(
+            initial={
+                'task':'active',
+                'active_exists':active_exists,
+                'active_id':active_id,
+                'active_memo':active_memo,
+                'active_type':'active'
+                })
+        task_form = ActiveRecordForm(
+            initial={
+                'task':task_name,
+                'active_exists':task_exists,
+                'active_id':task_id,
+                'active_memo':task_memo,
+                'active_type':'task'
+                })
         context = {
             'active_exists': active_exists,
             'has_already_today_active': has_already_today_active,
@@ -44,8 +62,22 @@ class ActivityRecordView(View):
             'gear': latest_kuji_log.gear_log,
             'subject_logs': subject_logs
         }
+        """
+        context = {
+            'has_already_today_active': has_already_today_active,
+            'active_status' : active_status,
+            'active_form': active_form,
+            'task_form': task_form,
+            'task_status': task_status,
+            'today_activity': today_activities,
+            'latest_kuji_log': latest_kuji_log,
+            'gear': latest_kuji_log.gear_log,
+            'subject_logs': subject_logs
+        }
+        """
         return render(request, 'activity_record.html', context)
     def post(self, request, *args, **kwargs):
+        print(request.POST)
         if "kuji" in request.POST:
 
             latest_task_record = ActiveRecord.objects.filter(active_type='task').order_by('-today').first()
@@ -110,6 +142,7 @@ class ActivityRecordView(View):
             }
             return render(request, 'activity_record.html', context)
         if "punch" in request.POST:
+            active_form = ActiveRecordForm(request.POST)
             activity_id=request.POST['activity_id']
             active_type=request.POST['active_type']
             if activity_id=='-1':
@@ -118,7 +151,7 @@ class ActivityRecordView(View):
                 print(active_record.today_jst_str)
                 active_record.save()
             else:
-                #memo = request.POST['memo']
+                memo = request.POST['memo']
                 print(request.POST)
                 active_record = ActiveRecord.objects.get(id=activity_id,active_type=active_type)
                 active_record.end_time=localtime(timezone.now())
@@ -126,7 +159,7 @@ class ActivityRecordView(View):
                 active_record.format_period = format_timedelta(active_record.period)
                 print("format period "+active_record.format_period)
                 active_record.is_active = False
-                #active_record.memo = memo
+                active_record.memo = memo
                 active_record.save()
             latest_task_record = ActiveRecord.objects.filter(active_type='task').order_by('-today').first()
             task_exists = latest_task_record.is_active
@@ -147,7 +180,7 @@ class ActivityRecordView(View):
                 'active_exists': active_exists,
                 'has_already_today_active': has_already_today_active,
                 'active_id': active_id,
-                'active_status': active_status,
+                'active_status' : active_status,
                 'active_memo' : active_memo,
                 'task_exists': task_exists,
                 'task_id': task_id,
@@ -157,10 +190,11 @@ class ActivityRecordView(View):
                 'today_activity': today_activities,
                 'latest_kuji_log': latest_kuji_log,
                 'gear': latest_kuji_log.gear_log,
-                'subject_logs': subject_logs 
+                'subject_logs': subject_logs
             }
             return render(request, 'activity_record.html', context)
         if "register_memo" in request.POST:
+            print('right')
             activity_id=request.POST['activity_id']
             active_record = ActiveRecord.objects.filter(id=activity_id).first()
             active_record.memo = request.POST['memo']
