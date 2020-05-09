@@ -77,6 +77,7 @@
                 <button type="submit" id="register_memo" name="register_memo">登録</button>
             {% endif %}
         </form>
+        {% if not subject_logs is None %}
         過去ログ
         <table border="1">
             <tr>
@@ -92,6 +93,7 @@
                 </tr>
             {% endfor %}    
         </table>
+        {% endif %}
         <table border="1">
             <tr>
                 <th>タスク名</th>
