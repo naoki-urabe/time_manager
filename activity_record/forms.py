@@ -26,6 +26,16 @@ class ActiveRecordCreateForm(forms.ModelForm):
         model = ActiveRecord
         fields = ('task','begin_time','end_time','memo','today','active_type','is_active')
 
+class ActiveRecordForm(forms.ModelForm):
+    class Meta:
+        model = ActiveRecord
+        fields = ('active_type','task','memo')
+    active_exists = forms.BooleanField(required=True,widget=forms.HiddenInput)
+    active_id = forms.IntegerField(required=True,widget=forms.HiddenInput)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['active_type'].widget = forms.HiddenInput()
+        self.fields['task'].widget = forms.HiddenInput()
 ActiveRecordFormSet = forms.modelformset_factory(
     ActiveRecord,form=ActiveRecordCreateForm, extra=10,max_num=100, can_delete=True,localized_fields='__all__'
 )
