@@ -60,7 +60,8 @@ class ActivityRecordView(View):
             'today_activity': today_activities,
             'latest_kuji_log': latest_kuji_log,
             'gear': latest_kuji_log.gear_log,
-            'subject_logs': subject_logs
+            'subject_logs': subject_logs,
+            'task_active_time': (latest_task_record.end_time if not latest_task_record.end_time is None else latest_task_record.begin_time).timestamp()
         }
         """
         context = {
@@ -138,7 +139,8 @@ class ActivityRecordView(View):
                 'task_memo' : task_memo,
                 'today_activity': today_activities,
                 'latest_kuji_log': latest_kuji_log,
-                'subject_logs': subject_logs
+                'subject_logs': subject_logs,
+                'task_active_time': (latest_task_record.end_time if not latest_task_record.end_time is None else latest_task_record.begin_time).timestamp()
             }
             return render(request, 'activity_record.html', context)
         if "punch" in request.POST:
@@ -190,7 +192,8 @@ class ActivityRecordView(View):
                 'today_activity': today_activities,
                 'latest_kuji_log': latest_kuji_log,
                 'gear': latest_kuji_log.gear_log,
-                'subject_logs': subject_logs
+                'subject_logs': subject_logs,
+                'task_active_time': (latest_task_record.end_time if not latest_task_record.end_time is None else latest_task_record.begin_time).timestamp()
             }
             return render(request, 'activity_record.html', context)
         if "register_memo" in request.POST:
@@ -228,7 +231,9 @@ class ActivityRecordView(View):
                 'today_activity': today_activities,
                 'latest_kuji_log': latest_kuji_log,
                 'gear': latest_kuji_log.gear_log,
-                'subject_logs': subject_logs
+                'subject_logs': subject_logs,
+                'task_active_time': (latest_task_record.end_time if not latest_task_record.end_time is None else latest_task_record.begin_time).timestamp()
+
             }
             return render(request, 'activity_record.html', context)
 class RegisterScheduleView(View):

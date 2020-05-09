@@ -116,6 +116,7 @@
     <script src="{% static 'js/getNow.js' %}"></script>
     <script>
         setInterval(getNow,1000);
+        setInterval(count_up,1000);
         document.getElementById('punch').onclick = function(){
             console.log('timer')
             document.getElementById('button_type').value = 'punch';
@@ -123,18 +124,18 @@
             setInterval(count_up(timer),1000);
         }
         document.getElementById('register_memo').onclick = function(){
-            console.log('timer')
-            var timer=0;
             document.getElementById('punch').setAttribute("disabled",true);
             document.getElementById('button_type').value = 'register_memo';
             document.activity.submit();
-            setInterval(count_up(timer),1000);
         }
         function count_up(timer){
-
-            var Hour = ('0' + timer/3600).slice(-2);
-            var Min = ('0' + (timer%3600)/60).slice(-2);
-            var Sec = ('0' + (timer%3600)%60).slice(-2);
+            var task_active_time = Number("{{task_active_time}}")
+            var now = new Date().getTime() / 1000;
+            var timer = now - task_active_time;
+            console.log(timer);
+            var Hour = ('0' + Math.floor(timer/3600)).slice(-2);
+            var Min = ('0' + Math.floor((timer%3600)/60)).slice(-2);
+            var Sec = ('0' +Math.floor( (timer%3600)%60)).slice(-2);
             var msg = Hour+":"+Min+":"+Sec
             console.log(msg);
             document.getElementById("stopwatch").innerHTML = msg
