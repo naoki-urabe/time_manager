@@ -267,6 +267,11 @@ class RegisterScheduleView(View):
     def post(self, request, *args, **kwargs):
         formset = ActiveRecordFormSet(request.POST or None, queryset=ActiveRecord.objects.filter(begin_time__lte=localtime(timezone.now())))
         if formset.is_valid():
+            instance = formset.save(commit=False)
+            for inst in formset.deleted_objects:
+                inst.delete()
+            for form in instance:
+                form.save()
             for form in formset:
                 schedule = form.save(commit=False)
                 if schedule.task == None:
@@ -289,8 +294,7 @@ class RegisterScheduleView(View):
                     elif schedule.begin_time != None:
                         schedule.is_active = True
                     schedule.save()
-            #for obj in formset.deleted_objects:
-                #obj.delete()
+            formset = GearFormSet()
             formset = ActiveRecordFormSet()
             context = {
                 'register_success_msg':"登録完了",
@@ -343,7 +347,12 @@ class RegisterSubjectView(View):
     def post(self, request, *args, **kwargs):
         formset = SubjectFormSet(request.POST or None, queryset=Subject.objects.all())
         if formset.is_valid():
-            formset.save()
+            instance = formset.save(commit=False)
+            for inst in formset.deleted_objects:
+                inst.delete()
+            for form in instance:
+                form.save()
+            formset = SubjectFormSet()
             context = {
                 'formset': formset
             }
@@ -358,7 +367,7 @@ class RegisterSubjectView(View):
 
 class RegisterGearView(View):
     def get(self, request, *args, **kwargs):
-        formset = GearFormSet()
+        formset = GearFormSet(queryset=Gear.objects.order_by('gear'))
         context = {
             'formset': formset
         }
@@ -366,8 +375,14 @@ class RegisterGearView(View):
     def post(self, request, *args, **kwargs):
         formset = GearFormSet(request.POST or None, queryset=Gear.objects.all())
         if formset.is_valid():
-            formset.save()
+            instance = formset.save(commit=False)
+            for inst in formset.deleted_objects:
+                inst.delete()
+            for form in instance:
+                form.save()
+            formset = GearFormSet(queryset=Gear.objects.order_by('gear'))
             context = {
+                'register_msg': '登録完了',
                 'formset': formset
             }
             return render(request, 'register_gear.html',context)
