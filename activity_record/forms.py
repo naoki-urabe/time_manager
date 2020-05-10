@@ -1,5 +1,7 @@
 from django import forms
 from .models import ActiveRecord
+from .models import Subject
+from .models import Gear
 class ActiveRecordCreateForm(forms.ModelForm):
     def __init__(self,*args,**kwargs):
         super().__init__(*args,**kwargs)
@@ -36,6 +38,38 @@ class ActiveRecordForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['active_type'].widget = forms.HiddenInput()
         self.fields['task'].widget = forms.HiddenInput()
+
+class SubjectFormSet(forms.ModelForm):
+    class Meta:
+        model = Subject
+        fields = ('subject_id','subject')
+
+class GearFormSet(forms.ModelForm):
+    class Meta:
+        model = Gear
+        fields = ('subject_id','gear','latest_ver')
+    def __init__(self,*args,**kwargs):
+        super().__init__(*args,**kwargs)
+        subject_all = Subject.objects.all()
+        CHOICE = [
+            ('','科目を選択してください')
+            ]
+        for subject in subject_all:
+            CHOICE.append((subject.subject_id,subject.subject))
+        self.fields['subject_id'] = forms.ChoiceField(
+            required=True,
+            choices=CHOICE,
+            widget=forms.Select
+        )
+
 ActiveRecordFormSet = forms.modelformset_factory(
     ActiveRecord,form=ActiveRecordCreateForm, extra=10,max_num=100, can_delete=True,localized_fields='__all__'
+)
+
+SubjectFormSet = forms.modelformset_factory(
+    Subject,form=SubjectFormSet, extra=10,max_num=100, can_delete=True,localized_fields='__all__'
+)
+
+GearFormSet = forms.modelformset_factory(
+    Gear,form=GearFormSet, extra=10,max_num=100, can_delete=True,localized_fields='__all__'
 )

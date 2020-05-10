@@ -30,6 +30,8 @@
         <a href="{% url 'register_schedule' %}">スケジュール登録</a>
         <a href="{% url 'activity_log' %}">ログ一覧</a>
         <a href="{% url 'subject_log' %}">科目過去ログ一覧</a>
+        <a href="{% url 'register_subject' %}">科目登録</a>
+        <a href="{% url 'register_gear' %}">ギア登録</a>
         <div id="timeline" style="height: 500px;"></div>
         <p id="Clock"></p>
         <p id="stopwatch"></p>
@@ -66,7 +68,21 @@
             {% csrf_token %}
             <input type="hidden" id="active_exists" name="active_exists" value={{ task_exists }}>
             <input type="hidden" id="activity_id" name="activity_id" value={{ task_id }}>
-            <input type="text" id="task_name" name="task_name" value={{ task_name }}>
+            {% if not task_exists %}
+            <select name="task_name">
+                <option value=''>科目を選んでください</option>
+                {% for subject in subject_all %}
+                    {% if task_name == subject.subject %}
+                        <option value={{subject.subject}} selected>{{subject.subject}}</option>
+                    {% else %}
+                        <option value={{subject.subject}}>{{subject.subject}}</option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+            {% else %}
+                {{ task_name }}
+                <input type="hidden" id="task_name" name="task_name" value={{ task_name }}>
+            {% endif %}
             <input type="hidden" id="active_type" name="active_type" value="task">
             <input type="hidden" id="button_type" name="button_type" value="">
             <button type="submit" id="punch" name="punch">{{ task_status }}</button>

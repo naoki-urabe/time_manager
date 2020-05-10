@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.views import View
 from .models import ActiveRecord
+from .models import Gear
 from .models import Subject
 from .models import KujiLog
 from django.utils import timezone
@@ -9,6 +10,8 @@ import datetime
 from time import mktime
 from .forms import ActiveRecordFormSet
 from .forms import ActiveRecordForm
+from .forms import SubjectFormSet
+from .forms import GearFormSet
 import re
 
 # Create your views here.
@@ -17,6 +20,7 @@ class ActivityRecordView(View):
         
         latest_task_record = ActiveRecord.objects.filter(active_type='task').order_by('-today').first()
         task_exists = latest_task_record.is_active
+        selected_task = latest_task_record if task_exists else None
         task_id = latest_task_record.id if task_exists else -1
         task_name = latest_task_record.task if task_exists else ''
         task_memo = latest_task_record.memo if task_exists else ''
@@ -30,6 +34,7 @@ class ActivityRecordView(View):
         today_activities =  ActiveRecord.objects.filter(today_jst=latest_active_record.today_jst).order_by('-today')
         latest_kuji_log = KujiLog.objects.all().order_by('-today').first()
         subject_logs = ActiveRecord.objects.filter(task=latest_task_record.task).order_by('-today')[:3] if task_name!='' else None
+        subject_all = Subject.objects.all()
         active_form = ActiveRecordForm(
             initial={
                 'task':'active',
@@ -61,7 +66,8 @@ class ActivityRecordView(View):
             'latest_kuji_log': latest_kuji_log,
             'gear': latest_kuji_log.gear_log,
             'subject_logs': subject_logs,
-            'task_active_time': (latest_task_record.end_time if not latest_task_record.end_time is None else latest_task_record.begin_time).timestamp()
+            'task_active_time': (latest_task_record.end_time if not latest_task_record.end_time is None else latest_task_record.begin_time).timestamp(),
+            'subject_all': subject_all
         }
         """
         context = {
@@ -84,7 +90,6 @@ class ActivityRecordView(View):
             latest_task_record = ActiveRecord.objects.filter(active_type='task').order_by('-today').first()
             task_exists = latest_task_record.is_active
             task_id = latest_task_record.id if task_exists else -1
-            task_name = latest_task_record.task if task_exists else ''
             task_memo = latest_task_record.memo if task_exists else ''
             task_status = '終了' if task_exists else '開始'
             latest_active_record = ActiveRecord.objects.filter(active_type='active').order_by('-today').first()
@@ -95,38 +100,48 @@ class ActivityRecordView(View):
             active_memo = latest_active_record.memo if active_exists else ''
             today_activities =  ActiveRecord.objects.filter(today_jst=latest_active_record.today_jst).order_by('-today')
             latest_kuji_log = KujiLog.objects.all().order_by('-today').first()
-
             gear = int(request.POST['gear'])
-            subjects = Subject.objects.filter(gear=gear,latest=0)
-            n = Subject.objects.filter(gear=gear).count()
-            query_count = subjects.count()
+            not_selected_subjects = Gear.objects.filter(gear=gear,latest_ver=0)
+            query_count = not_selected_subjects.count()
+            latest_ver = Gear.objects.filter(gear=gear).count() - query_count + 1
             if query_count == 0:
+                latest_ver = 1
                 update_subjects = []
-                gear_subjects = Subject.objects.filter(gear=gear)
+                gear_subjects = Gear.objects.filter(gear=gear)
                 for subject in gear_subjects:
-                    subject.latest = 0
+                    subject.latest_ver = 0
                     update_subjects.append(subject)
-                Subject.objects.bulk_update(update_subjects, fields=['latest'])
-                subjects = Subject.objects.filter(gear=gear,latest=0)
-                query_count = subjects.count()
-            selected_subject = subjects.order_by('?').first()
-            selected_subject.latest = n-query_count+1
+                Gear.objects.bulk_update(update_subjects, fields=['latest_ver'])
+                not_selected_subjects = Gear.objects.filter(gear=gear,latest_ver=0)
+                query_count = not_selected_subjects.count()
+            print('---------------not selected---------------')
+            for s in not_selected_subjects:
+                print(s.subject_id,s.latest_ver)
+            print('-----------------------------------------')
+            selected_subject = not_selected_subjects.order_by('?').first()
+            selected_subject_id = selected_subject.subject_id
+            selected_subject_name = Subject.objects.get(subject_id=selected_subject_id).subject
+            print('--------------selected subject-------------')
+            print(selected_subject_id,selected_subject_name)
+            print('-------------------------------------------')
+            selected_subject.latest_ver = latest_ver
             selected_subject.save()
-            subject_logs = ActiveRecord.objects.filter(task=latest_task_record.task).order_by('-today')[:3] if task_name!='' else None
+            subject_logs = ActiveRecord.objects.filter(task=selected_subject_name).order_by('-today')[:3] if selected_subject_name!='' else None
             print(subject_logs)
             latest_kuji_log = KujiLog.objects.all().order_by('-today').first()
             if latest_kuji_log is None:
-                KujiLog.objects.create(gear_log=gear,cycle_log=1,latest_ver=1,today=timezone.now(),subject=selected_subject.subject,today_jst_str=localtime(timezone.now()).strftime('%Y%m%d'))
+                KujiLog.objects.create(gear_log=gear,cycle_log=1,latest_ver=1,today=timezone.now(),subject=selected_subject_name,today_jst_str=localtime(timezone.now()).strftime('%Y%m%d'))
             else:
                 if latest_kuji_log.gear_log != gear:
-                    KujiLog.objects.create(gear_log=gear,cycle_log=1,latest_ver=1,today=timezone.now(),subject=selected_subject.subject,today_jst_str=localtime(timezone.now()).strftime('%Y%m%d'))
+                    KujiLog.objects.create(gear_log=gear,cycle_log=1,latest_ver=1,today=timezone.now(),subject=selected_subject_name,today_jst_str=localtime(timezone.now()).strftime('%Y%m%d'))
                 else:
-                    if n-query_count==0:
-                        KujiLog.objects.create(gear_log=gear,cycle_log=latest_kuji_log.cycle_log+1,latest_ver=1,today=timezone.now(),subject=selected_subject.subject,today_jst_str=localtime(timezone.now()).strftime('%Y%m%d'))
+                    if latest_ver==1:
+                        KujiLog.objects.create(gear_log=gear,cycle_log=latest_kuji_log.cycle_log+1,latest_ver=1,today=timezone.now(),subject=selected_subject_name,today_jst_str=localtime(timezone.now()).strftime('%Y%m%d'))
                     else:
-                        KujiLog.objects.create(gear_log=gear,cycle_log=latest_kuji_log.cycle_log,latest_ver=latest_kuji_log.latest_ver+1,today=timezone.now(),subject=selected_subject.subject,today_jst_str=localtime(timezone.now()).strftime('%Y%m%d'))
+                        KujiLog.objects.create(gear_log=gear,cycle_log=latest_kuji_log.cycle_log,latest_ver=latest_kuji_log.latest_ver+1,today=timezone.now(),subject=selected_subject_name,today_jst_str=localtime(timezone.now()).strftime('%Y%m%d'))
+            subject_all = Subject.objects.all()
             context = {
-                'task_name': selected_subject.subject,
+                'task_name': selected_subject_name,
                 'gear': gear,
                 'active_status': request.POST['active_status'],
                 'task_status': request.POST['task_status'],
@@ -140,7 +155,8 @@ class ActivityRecordView(View):
                 'today_activity': today_activities,
                 'latest_kuji_log': latest_kuji_log,
                 'subject_logs': subject_logs,
-                'task_active_time': (latest_task_record.end_time if not latest_task_record.end_time is None else latest_task_record.begin_time).timestamp()
+                'task_active_time': (latest_task_record.end_time if not latest_task_record.end_time is None else latest_task_record.begin_time).timestamp(),
+                'subject_all': subject_all
             }
             return render(request, 'activity_record.html', context)
         if "punch" in request.POST:
@@ -178,6 +194,7 @@ class ActivityRecordView(View):
             today_activities =  ActiveRecord.objects.filter(today_jst=latest_active_record.today_jst).order_by('-today')
             latest_kuji_log = KujiLog.objects.all().order_by('-today').first()
             subject_logs = ActiveRecord.objects.filter(task=latest_task_record.task).order_by('-today')[:3] if task_name!='' else None
+            subject_all = Subject.objects.all()
             context = {
                 'active_exists': active_exists,
                 'has_already_today_active': has_already_today_active,
@@ -193,7 +210,8 @@ class ActivityRecordView(View):
                 'latest_kuji_log': latest_kuji_log,
                 'gear': latest_kuji_log.gear_log,
                 'subject_logs': subject_logs,
-                'task_active_time': (latest_task_record.end_time if not latest_task_record.end_time is None else latest_task_record.begin_time).timestamp()
+                'task_active_time': (latest_task_record.end_time if not latest_task_record.end_time is None else latest_task_record.begin_time).timestamp(),
+                'subject_all': subject_all
             }
             return render(request, 'activity_record.html', context)
         if "register_memo" in request.POST:
@@ -217,6 +235,7 @@ class ActivityRecordView(View):
             today_activities =  ActiveRecord.objects.filter(today_jst=latest_active_record.today_jst).order_by('-today')
             latest_kuji_log = KujiLog.objects.all().order_by('-today').first()
             subject_logs = ActiveRecord.objects.filter(task=latest_task_record.task).order_by('-today')[:3] if task_name!='' else None
+            subject_all = Subject.objects.all()
             context = {
                 'active_exists': active_exists,
                 'has_already_today_active': has_already_today_active,
@@ -232,7 +251,8 @@ class ActivityRecordView(View):
                 'latest_kuji_log': latest_kuji_log,
                 'gear': latest_kuji_log.gear_log,
                 'subject_logs': subject_logs,
-                'task_active_time': (latest_task_record.end_time if not latest_task_record.end_time is None else latest_task_record.begin_time).timestamp()
+                'task_active_time': (latest_task_record.end_time if not latest_task_record.end_time is None else latest_task_record.begin_time).timestamp(),
+                'subject_all': subject_all
 
             }
             return render(request, 'activity_record.html', context)
@@ -313,6 +333,52 @@ class SubjectLogView(View):
         }
         return render(request, 'subject_log.html',context)
 
+class RegisterSubjectView(View):
+    def get(self, request, *args, **kwargs):
+        formset = SubjectFormSet()
+        context = {
+            'formset': formset
+        }
+        return render(request, 'register_subject.html',context)
+    def post(self, request, *args, **kwargs):
+        formset = SubjectFormSet(request.POST or None, queryset=Subject.objects.all())
+        if formset.is_valid():
+            formset.save()
+            context = {
+                'formset': formset
+            }
+            return render(request, 'register_subject.html',context)
+        else:
+            print(formset._errors)
+            context = {
+                'register_msg': formset._errors,
+                'formset': formset
+            }
+            return render(request, 'register_subject.html',context)
+
+class RegisterGearView(View):
+    def get(self, request, *args, **kwargs):
+        formset = GearFormSet()
+        context = {
+            'formset': formset
+        }
+        return render(request, 'register_gear.html',context)
+    def post(self, request, *args, **kwargs):
+        formset = GearFormSet(request.POST or None, queryset=Gear.objects.all())
+        if formset.is_valid():
+            formset.save()
+            context = {
+                'formset': formset
+            }
+            return render(request, 'register_gear.html',context)
+        else:
+            print(formset._errors)
+            context = {
+                'register_msg': formset._errors,
+                'formset': formset
+            }
+            return render(request, 'register_gear.html',context)
+
 def to_jst(time):
     print((time + datetime.timedelta(hours=9)).date())
     return (time + datetime.timedelta(hours=9)).date()
@@ -358,3 +424,5 @@ register_schedule = RegisterScheduleView.as_view()
 activity_log = ActivityLogView.as_view()
 activity_detail = ActivityDetailView.as_view()
 subject_log = SubjectLogView.as_view()
+register_subject = RegisterSubjectView.as_view()
+register_gear = RegisterGearView.as_view()
