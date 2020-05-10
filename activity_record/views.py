@@ -271,9 +271,7 @@ class RegisterScheduleView(View):
             for inst in formset.deleted_objects:
                 inst.delete()
             for form in instance:
-                form.save()
-            for form in formset:
-                schedule = form.save(commit=False)
+                schedule = form
                 if schedule.task == None:
                     continue
                 if schedule.active_type == "schedule":
