@@ -35,6 +35,9 @@ class ActivityRecordView(View):
         latest_kuji_log = KujiLog.objects.all().order_by('-today').first()
         subject_logs = ActiveRecord.objects.filter(task=latest_task_record.task).order_by('-today')[:3] if task_name!='' else None
         subject_all = Subject.objects.all()
+        gear_kind = Gear.objects.all().values_list('gear', flat=True).order_by('gear').distinct()
+        for gear in gear_kind:
+            print(gear)
         active_form = ActiveRecordForm(
             initial={
                 'task':'active',
@@ -67,7 +70,8 @@ class ActivityRecordView(View):
             'gear': latest_kuji_log.gear_log,
             'subject_logs': subject_logs,
             'task_active_time': (latest_task_record.end_time if not latest_task_record.end_time is None else latest_task_record.begin_time).timestamp(),
-            'subject_all': subject_all
+            'subject_all': subject_all,
+            'gear_kind': gear_kind
         }
         """
         context = {
@@ -140,6 +144,7 @@ class ActivityRecordView(View):
                     else:
                         KujiLog.objects.create(gear_log=gear,cycle_log=latest_kuji_log.cycle_log,latest_ver=latest_kuji_log.latest_ver+1,today=timezone.now(),subject=selected_subject_name,today_jst_str=localtime(timezone.now()).strftime('%Y%m%d'))
             subject_all = Subject.objects.all()
+            gear_kind = Gear.objects.all().values_list('gear', flat=True).order_by('gear').distinct()
             context = {
                 'task_name': selected_subject_name,
                 'gear': gear,
@@ -156,7 +161,8 @@ class ActivityRecordView(View):
                 'latest_kuji_log': latest_kuji_log,
                 'subject_logs': subject_logs,
                 'task_active_time': (latest_task_record.end_time if not latest_task_record.end_time is None else latest_task_record.begin_time).timestamp(),
-                'subject_all': subject_all
+                'subject_all': subject_all,
+                'gear_kind': gear_kind
             }
             return render(request, 'activity_record.html', context)
         if "punch" in request.POST:
@@ -195,6 +201,7 @@ class ActivityRecordView(View):
             latest_kuji_log = KujiLog.objects.all().order_by('-today').first()
             subject_logs = ActiveRecord.objects.filter(task=latest_task_record.task).order_by('-today')[:3] if task_name!='' else None
             subject_all = Subject.objects.all()
+            gear_kind = Gear.objects.all().values_list('gear', flat=True).order_by('gear').distinct()
             context = {
                 'active_exists': active_exists,
                 'has_already_today_active': has_already_today_active,
@@ -211,7 +218,9 @@ class ActivityRecordView(View):
                 'gear': latest_kuji_log.gear_log,
                 'subject_logs': subject_logs,
                 'task_active_time': (latest_task_record.end_time if not latest_task_record.end_time is None else latest_task_record.begin_time).timestamp(),
-                'subject_all': subject_all
+                'subject_all': subject_all,
+                'gear_kind': gear_kind
+                
             }
             return render(request, 'activity_record.html', context)
         if "register_memo" in request.POST:
@@ -236,6 +245,7 @@ class ActivityRecordView(View):
             latest_kuji_log = KujiLog.objects.all().order_by('-today').first()
             subject_logs = ActiveRecord.objects.filter(task=latest_task_record.task).order_by('-today')[:3] if task_name!='' else None
             subject_all = Subject.objects.all()
+            gear_kind = Gear.objects.all().values_list('gear', flat=True).order_by('gear').distinct()
             context = {
                 'active_exists': active_exists,
                 'has_already_today_active': has_already_today_active,
@@ -252,8 +262,8 @@ class ActivityRecordView(View):
                 'gear': latest_kuji_log.gear_log,
                 'subject_logs': subject_logs,
                 'task_active_time': (latest_task_record.end_time if not latest_task_record.end_time is None else latest_task_record.begin_time).timestamp(),
-                'subject_all': subject_all
-
+                'subject_all': subject_all,
+                'gear_kind': gear_kind
             }
             return render(request, 'activity_record.html', context)
 class RegisterScheduleView(View):

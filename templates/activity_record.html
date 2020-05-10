@@ -58,7 +58,16 @@
         前回くじ引き:{{ latest_kuji_log.today|date:"m/d H:i:s T" }}
         <form action = "" method="post" name="kuji">
             {% csrf_token %}
-            <input type="text" id="gear" name="gear" value={{ gear }}>
+            <select name="gear">
+                <option value=''>ギアを選んでください</option>
+                {% for gk in gear_kind %}
+                    {% if gk == gear %}
+                        <option value={{gk}} selected>{{gk}}</option>
+                    {% else %}
+                        <option value={{gk}}>{{gk}}</option>
+                    {% endif %}
+                {% endfor %}
+            </select>
             <input type="hidden" id="kuji" name="kuji" value="kuji">
             <input type="hidden" id="active_status" name="active_status" value={{ active_status }}>
             <input type="hidden" id="task_status" name="task_status" value={{ task_status }}>
