@@ -411,6 +411,7 @@ class ActivityDetailView(View):
         print(active_histories)
         context = {
             'today_activity': active_histories,
+            'today_jst_str': today_jst_str
         }
         return render(request, 'log_detail.html', context)
 class SubjectLogView(View):
@@ -524,7 +525,24 @@ class ReviewListView(View):
             }
             return render(request, 'register_gear.html',context)
 
-
+class EditLogView(View):
+    def get(self, request,today_jst_str, *args, **kwargs):
+        formset = ActiveRecordFormSet(request.POST or None, queryset=ActiveRecord.objects.filter(today_jst_str=today_jst_str).order_by('-today'))
+        context = {
+            'formset':formset,
+            'today_jst_str':today_jst_str
+        }
+        return render(request, 'edit_log.html',context)
+    def post(self, request,today_jst_str, *args, **kwargs):
+        formset = ActiveRecordFormSet(request.POST or None, queryset=ActiveRecord.objects.filter(today_jst_str=today_jst_str))
+        if formset.is_valid():
+            formset.save()
+            formset = ActiveRecordFormSet(request.POST or None, queryset=ActiveRecord.objects.filter(today_jst_str=today_jst_str).order_by('-today'))
+            context = {
+                'formset':formset,
+                'today_jst_str':today_jst_str
+            }
+            return render(request, 'edit_log.html',context)
 def to_jst(time):
     print((time + datetime.timedelta(hours=9)).date())
     return (time + datetime.timedelta(hours=9)).date()
@@ -573,3 +591,4 @@ subject_log = SubjectLogView.as_view()
 register_subject = RegisterSubjectView.as_view()
 register_gear = RegisterGearView.as_view()
 review_list = ReviewListView.as_view()
+edit_log = EditLogView.as_view()

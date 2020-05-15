@@ -16,9 +16,9 @@
             dataTable.addColumn({ type: 'date', id: 'End' });
            
             dataTable.addRows([  
-            {% for activity in today_activity %}
-                ["{{activity.task}}",new Date("{{ activity.begin_time.isoformat }}"), new Date("{{ activity.end_time.isoformat }}")], 
-            {% endfor %}       
+              {% for activity in today_activity %}
+                  ["{{activity.task}}",new Date("{{ activity.begin_time.isoformat }}"), new Date("{{ activity.end_time.isoformat }}")], 
+              {% endfor %}       
             ]);
             chart.draw(dataTable);
           }
@@ -26,6 +26,7 @@
     </head>
     <body>
       <a href="{% url 'activity_log' %}">ログ一覧へ</a>
+      <a href="{% url 'edit_log' today_jst_str %}">ログ編集</a>
       <div id="timeline" style="height: 500px;"></div>
         <table border="1">
             <tr>
