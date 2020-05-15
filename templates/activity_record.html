@@ -32,7 +32,35 @@
         <a href="{% url 'subject_log' %}">科目過去ログ一覧</a>
         <a href="{% url 'register_subject' %}">科目登録</a>
         <a href="{% url 'register_gear' %}">ギア登録</a>
+        <a href="{% url 'review_list' %}">復習一覧</a>
         <div id="timeline" style="height: 500px;"></div>
+        
+        <details>
+            <summary>復習一覧</summary>
+            <table border="1">
+                <tr>
+                    <th>科目</th>
+                    <th>復習コード</th>
+                    <th>概要</th>
+                    <th>復習予定1</th>
+                    <th>復習予定2</th>
+                    <th>復習予定3</th>
+                    <th>復習予定4</th>
+                </tr>
+                {% for review in todays_review %}
+                <tr>
+                    <td>{{review.subject_id}}</td>
+                    <td>{{review.review_id}}</td>
+                    <td>{{review.summary}}</td>
+                    <td>{{review.tomorrow|date:"m/d"}}</td>
+                    <td>{{review.one_week_later|date:"m/d"}}</td>
+                    <td>{{review.two_week_later|date:"m/d"}}</td>
+                    <td>{{review.one_month_later|date:"m/d"}}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </details>
+
         <p id="Clock"></p>
         <p id="stopwatch"></p>
         <form action = "" method="post" name="activity">
@@ -102,6 +130,23 @@
                 <button type="submit" id="register_memo" name="register_memo">登録</button>
             {% endif %}
         </form>
+        <details>
+            <summary>復習</summary>
+            <form action = "" method="post" name="send_review">
+                {% csrf_token %}
+                {% for form in review_formset %}
+                    科目:{{form.subject_id}}
+                    復習No:{{form.version}}
+                    概要:{{form.summary}}
+                    オンライン:{{form.is_online}}<br>
+                    {% for field in form.hidden_fields %}
+                        {{ field }}
+                    {% endfor %}
+                {% endfor %}
+                {{ review_formset.management_form }} 
+                <input type="submit" id="register_review" name="register_review" value="送信">
+            </form>
+        </details>
         {% if not subject_logs is None %}
         過去ログ
         <table border="1">

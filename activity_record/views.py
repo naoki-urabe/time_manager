@@ -4,6 +4,8 @@ from .models import ActiveRecord
 from .models import Gear
 from .models import Subject
 from .models import KujiLog
+from .models import Review
+from django.db.models import Q
 from django.utils import timezone
 from django.utils.timezone import localtime
 import datetime
@@ -12,6 +14,7 @@ from .forms import ActiveRecordFormSet
 from .forms import ActiveRecordForm
 from .forms import SubjectFormSet
 from .forms import GearFormSet
+from .forms import ReviewFormSet
 import re
 
 # Create your views here.
@@ -54,6 +57,14 @@ class ActivityRecordView(View):
                 'active_memo':task_memo,
                 'active_type':'task'
                 })
+        review_formset = ReviewFormSet(request.POST or None, queryset=Review.objects.filter(today_date=localtime(timezone.now()).date()))
+        todays_review = Review.objects.filter(Q(tomorrow=localtime(timezone.now()).date()) | 
+                                              Q(one_week_later=localtime(timezone.now()).date()) |
+                                              Q(two_week_later=localtime(timezone.now()).date()) | 
+                                              Q(one_month_later=localtime(timezone.now()).date())).distinct()
+        print(Review.objects.filter(tomorrow=localtime(timezone.now()).date()))
+        print(Review.objects.filter(Q(tomorrow=localtime(timezone.now()))))
+        print(todays_review)
         context = {
             'active_exists': active_exists,
             'has_already_today_active': has_already_today_active,
@@ -71,7 +82,9 @@ class ActivityRecordView(View):
             'subject_logs': subject_logs,
             'task_active_time': (latest_task_record.end_time if not latest_task_record.end_time is None else latest_task_record.begin_time).timestamp(),
             'subject_all': subject_all,
-            'gear_kind': gear_kind
+            'gear_kind': gear_kind,
+            'review_formset': review_formset,
+            'todays_review': todays_review
         }
         """
         context = {
@@ -145,6 +158,7 @@ class ActivityRecordView(View):
                         KujiLog.objects.create(gear_log=gear,cycle_log=latest_kuji_log.cycle_log,latest_ver=latest_kuji_log.latest_ver+1,today=timezone.now(),subject=selected_subject_name,today_jst_str=localtime(timezone.now()).strftime('%Y%m%d'))
             subject_all = Subject.objects.all()
             gear_kind = Gear.objects.all().values_list('gear', flat=True).order_by('gear').distinct()
+            review_formset = ReviewFormSet(request.POST or None, queryset=Review.objects.filter(today_date=localtime(timezone.now()).date()))
             context = {
                 'task_name': selected_subject_name,
                 'gear': gear,
@@ -162,7 +176,8 @@ class ActivityRecordView(View):
                 'subject_logs': subject_logs,
                 'task_active_time': (latest_task_record.end_time if not latest_task_record.end_time is None else latest_task_record.begin_time).timestamp(),
                 'subject_all': subject_all,
-                'gear_kind': gear_kind
+                'gear_kind': gear_kind,
+                'review_formset': review_formset
             }
             return render(request, 'activity_record.html', context)
         if "punch" in request.POST:
@@ -202,6 +217,7 @@ class ActivityRecordView(View):
             subject_logs = ActiveRecord.objects.filter(task=latest_task_record.task).order_by('-today')[:3] if task_name!='' else None
             subject_all = Subject.objects.all()
             gear_kind = Gear.objects.all().values_list('gear', flat=True).order_by('gear').distinct()
+            review_formset = ReviewFormSet(request.POST or None, queryset=Review.objects.filter(today_date=localtime(timezone.now()).date()))
             context = {
                 'active_exists': active_exists,
                 'has_already_today_active': has_already_today_active,
@@ -219,7 +235,8 @@ class ActivityRecordView(View):
                 'subject_logs': subject_logs,
                 'task_active_time': (latest_task_record.end_time if not latest_task_record.end_time is None else latest_task_record.begin_time).timestamp(),
                 'subject_all': subject_all,
-                'gear_kind': gear_kind
+                'gear_kind': gear_kind,
+                'review_formset': review_formset
                 
             }
             return render(request, 'activity_record.html', context)
@@ -246,6 +263,7 @@ class ActivityRecordView(View):
             subject_logs = ActiveRecord.objects.filter(task=latest_task_record.task).order_by('-today')[:3] if task_name!='' else None
             subject_all = Subject.objects.all()
             gear_kind = Gear.objects.all().values_list('gear', flat=True).order_by('gear').distinct()
+            review_formset = ReviewFormSet(request.POST or None, queryset=Review.objects.filter(today_date=localtime(timezone.now()).date()))
             context = {
                 'active_exists': active_exists,
                 'has_already_today_active': has_already_today_active,
@@ -263,9 +281,74 @@ class ActivityRecordView(View):
                 'subject_logs': subject_logs,
                 'task_active_time': (latest_task_record.end_time if not latest_task_record.end_time is None else latest_task_record.begin_time).timestamp(),
                 'subject_all': subject_all,
-                'gear_kind': gear_kind
+                'gear_kind': gear_kind,
+                'review_formset': review_formset
             }
             return render(request, 'activity_record.html', context)
+        if "register_review" in request.POST:
+            formset = ReviewFormSet(request.POST or None, queryset=Review.objects.none())
+            if formset.is_valid():
+                instances = formset.save(commit=False)
+                print('##############################')
+                print(instances)
+                print('##############################')
+                for inst in instances:
+                    base_review_id = ("00000" + str(inst.version))[-5:]
+                    inst.review_id = "P" + base_review_id if inst.is_online == 'online' else "N" + base_review_id
+                    inst.today = localtime(timezone.now())
+                    inst.today_date = localtime(timezone.now()).date()
+                    inst.tomorrow = localtime(timezone.now()+datetime.timedelta(days=1)).date()
+                    inst.one_week_later = localtime(timezone.now()+datetime.timedelta(days=7)).date()
+                    inst.two_week_later = localtime(timezone.now()+datetime.timedelta(days=14)).date()
+                    inst.one_month_later = localtime(timezone.now()+datetime.timedelta(days=28)).date()
+                    print('---------------------------')
+                    print(inst)
+                    inst.save()
+                    print('---------------------------')
+                formset.save()
+            
+                latest_task_record = ActiveRecord.objects.filter(active_type='task').order_by('-today').first()
+                task_exists = latest_task_record.is_active
+                task_id = latest_task_record.id if task_exists else -1
+                task_name = latest_task_record.task if task_exists else ''
+                task_memo = latest_task_record.memo if task_exists else ''
+                task_status = '終了' if task_exists else '開始'
+                latest_active_record = ActiveRecord.objects.filter(active_type='active').order_by('-today').first()
+                active_exists = latest_active_record.is_active
+                has_already_today_active =  localtime(timezone.now()).date()==latest_active_record.today_jst and not latest_active_record.is_active
+                active_id = latest_active_record.id if active_exists else -1
+                active_status = '活動中' if active_exists else '睡眠中'
+                active_memo = latest_active_record.memo if active_exists else ''
+                today_activities =  ActiveRecord.objects.filter(today_jst=latest_active_record.today_jst).order_by('-today')
+                latest_kuji_log = KujiLog.objects.all().order_by('-today').first()
+                subject_logs = ActiveRecord.objects.filter(task=latest_task_record.task).order_by('-today')[:3] if task_name!='' else None
+                subject_all = Subject.objects.all()
+                gear_kind = Gear.objects.all().values_list('gear', flat=True).order_by('gear').distinct()
+                review_formset = ReviewFormSet(request.POST or None, queryset=Review.objects.filter(today_date=localtime(timezone.now()).date()))
+                context = {
+                    'active_exists': active_exists,
+                    'has_already_today_active': has_already_today_active,
+                    'active_id': active_id,
+                    'active_status': active_status,
+                    'active_memo' : active_memo,
+                    'task_exists': task_exists,
+                    'task_id': task_id,
+                    'task_name': task_name,
+                    'task_memo' : task_memo,
+                    'task_status': task_status,
+                    'today_activity': today_activities,
+                    'latest_kuji_log': latest_kuji_log,
+                    'gear': latest_kuji_log.gear_log,
+                    'subject_logs': subject_logs,
+                    'task_active_time': (latest_task_record.end_time if not latest_task_record.end_time is None else latest_task_record.begin_time).timestamp(),
+                    'subject_all': subject_all,
+                    'gear_kind': gear_kind,
+                    'review_formset': review_formset
+                }        
+                return render(request, 'activity_record.html', context)
+            else:
+                print(formset.errors)
+                return render(request, 'activity_record.html', context)
 class RegisterScheduleView(View):
     def get(self, request, *args, **kwargs):
         formset = ActiveRecordFormSet()
@@ -356,9 +439,13 @@ class RegisterSubjectView(View):
         formset = SubjectFormSet(request.POST or None, queryset=Subject.objects.all())
         if formset.is_valid():
             instance = formset.save(commit=False)
+            print(instance)
             for inst in formset.deleted_objects:
                 inst.delete()
             for form in instance:
+                print('-----------------------')
+                print(form)
+                print('-----------------------')
                 form.save()
             formset = SubjectFormSet()
             context = {
@@ -382,11 +469,14 @@ class RegisterGearView(View):
         return render(request, 'register_gear.html',context)
     def post(self, request, *args, **kwargs):
         formset = GearFormSet(request.POST or None, queryset=Gear.objects.all())
+        print(formset)
         if formset.is_valid():
             instance = formset.save(commit=False)
             for inst in formset.deleted_objects:
                 inst.delete()
             for form in instance:
+                print(form)
+                print('000000000000')
                 form.save()
             formset = GearFormSet(queryset=Gear.objects.order_by('gear'))
             context = {
@@ -401,6 +491,39 @@ class RegisterGearView(View):
                 'formset': formset
             }
             return render(request, 'register_gear.html',context)
+
+class ReviewListView(View):
+    def get(self, request, *args, **kwargs):
+        review_list = Review.objects.all().order_by('-today')
+        context = {
+                'review_list':review_list
+            }
+        return render(request, 'review_list.html',context)
+    def post(self, request, *args, **kwargs):
+        formset = GearFormSet(request.POST or None, queryset=Gear.objects.all())
+        print(formset)
+        if formset.is_valid():
+            instance = formset.save(commit=False)
+            for inst in formset.deleted_objects:
+                inst.delete()
+            for form in instance:
+                print(form)
+                print('000000000000')
+                form.save()
+            formset = GearFormSet(queryset=Gear.objects.order_by('gear'))
+            context = {
+                'register_msg': '登録完了',
+                'formset': formset
+            }
+            return render(request, 'register_gear.html',context)
+        else:
+            print(formset._errors)
+            context = {
+                'register_msg': formset._errors,
+                'formset': formset
+            }
+            return render(request, 'register_gear.html',context)
+
 
 def to_jst(time):
     print((time + datetime.timedelta(hours=9)).date())
@@ -449,3 +572,4 @@ activity_detail = ActivityDetailView.as_view()
 subject_log = SubjectLogView.as_view()
 register_subject = RegisterSubjectView.as_view()
 register_gear = RegisterGearView.as_view()
+review_list = ReviewListView.as_view()

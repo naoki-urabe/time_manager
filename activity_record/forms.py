@@ -2,6 +2,7 @@ from django import forms
 from .models import ActiveRecord
 from .models import Subject
 from .models import Gear
+from .models import Review
 class ActiveRecordCreateForm(forms.ModelForm):
     def __init__(self,*args,**kwargs):
         super().__init__(*args,**kwargs)
@@ -61,6 +62,36 @@ class GearFormSet(forms.ModelForm):
             choices=CHOICE,
             widget=forms.Select
         )
+        #self.queryset = self.queryset.order_by('gear')
+
+class ReviewFormSet(forms.ModelForm):
+    class Meta:
+        model = Review
+        fields = ('subject_id','summary','is_online','version')
+    def __init__(self,*args,**kwargs):
+        super().__init__(*args,**kwargs)
+        subject_all = Subject.objects.all()
+        CHOICE = [
+            ('','科目を選択してください')
+            ]
+        for subject in subject_all:
+            CHOICE.append((subject.subject_id,subject.subject))
+        self.fields['subject_id'] = forms.ChoiceField(
+            required=True,
+            choices=CHOICE,
+            widget=forms.Select
+        )
+        CHOICE = [
+            ('','科目を選択してください'),
+            ('online','オンライン'),
+            ('offline','オフライン')
+            ]
+        self.fields['is_online'] = forms.ChoiceField(
+            required=True,
+            choices=CHOICE,
+            widget=forms.Select
+        )
+        #self.queryset = self.queryset.order_by('gear')
 
 ActiveRecordFormSet = forms.modelformset_factory(
     ActiveRecord,form=ActiveRecordCreateForm, extra=10,max_num=100, can_delete=True,localized_fields='__all__'
@@ -71,5 +102,9 @@ SubjectFormSet = forms.modelformset_factory(
 )
 
 GearFormSet = forms.modelformset_factory(
-    Gear,form=GearFormSet, extra=10,max_num=100, can_delete=True,localized_fields='__all__'
+    Gear,form=GearFormSet, extra=10,max_num=100, can_delete=True,localized_fields='__all__', can_order=True
+)
+
+ReviewFormSet = forms.modelformset_factory(
+    Review,form=ReviewFormSet, extra=10,max_num=10, can_delete=True,localized_fields='__all__', can_order=True
 )
