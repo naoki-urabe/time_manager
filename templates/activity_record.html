@@ -1,0 +1,217 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+    <head>
+        <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+        <script type="text/javascript">
+        google.charts.load('current', {'packages':['timeline']});
+        google.charts.setOnLoadCallback(drawChart);
+        function drawChart() {
+            var container = document.getElementById('timeline');
+            var chart = new google.visualization.Timeline(container);
+            var dataTable = new google.visualization.DataTable();
+
+            dataTable.addColumn({ type: 'string', id: 'Task' });
+            dataTable.addColumn({ type: 'date', id: 'Start' });
+            dataTable.addColumn({ type: 'date', id: 'End' });
+           
+            dataTable.addRows([  
+            {% for activity in today_activity %}
+                {% if activity.active_type != 'active' and activity.is_active != True %}     
+                    ["{{activity.task}}",new Date("{{ activity.begin_time.isoformat }}"), new Date("{{ activity.end_time.isoformat }}")], 
+                {% endif %}         
+            {% endfor %}       
+            ]);
+            chart.draw(dataTable);
+        }
+        </script>
+    </head>
+    <body>
+        <a href="{% url 'register_schedule' %}">スケジュール登録</a>
+        <a href="{% url 'activity_log' %}">ログ一覧</a>
+        <a href="{% url 'subject_log' %}">科目過去ログ一覧</a>
+        <a href="{% url 'register_subject' %}">科目登録</a>
+        <a href="{% url 'register_gear' %}">ギア登録</a>
+        <a href="{% url 'review_list' %}">復習一覧</a>
+        <div id="timeline" style="height: 500px;"></div>
+        
+        <details>
+            <summary>復習一覧</summary>
+            <table border="1">
+                <tr>
+                    <th>科目</th>
+                    <th>復習コード</th>
+                    <th>概要</th>
+                    <th>復習予定1</th>
+                    <th>復習予定2</th>
+                    <th>復習予定3</th>
+                    <th>復習予定4</th>
+                </tr>
+                {% for review in todays_review %}
+                <tr>
+                    <td>{{review.subject_id}}</td>
+                    <td>{{review.review_id}}</td>
+                    <td>{{review.summary}}</td>
+                    <td>{{review.tomorrow|date:"m/d"}}</td>
+                    <td>{{review.one_week_later|date:"m/d"}}</td>
+                    <td>{{review.two_week_later|date:"m/d"}}</td>
+                    <td>{{review.one_month_later|date:"m/d"}}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </details>
+
+        <p id="Clock"></p>
+        <p id="stopwatch"></p>
+        <form action = "" method="post" name="activity">
+            {% csrf_token %}
+            <input type="hidden" id="active_exists" name="active_exists" value={{ active_exists }}>
+            <input type="hidden" id="activity_id" name="activity_id" value={{ active_id }}>
+            <input type="hidden" id="active_type" name="active_type" value="active">
+            <input type="hidden" id="task_name" name="task_name" value="active">
+            {% if active_id != -1 %}
+                <details>
+                    <summary>日誌</summary>
+                        <textarea name="memo" cols="100" rows="5">{{ active_memo }}</textarea>
+                        <button type="submit" id="register_memo" name="register_memo" value="登録">登録</button>
+                </details>
+            {% endif %}
+            {% if has_already_today_active %}
+                <button type="submit" id="punch" name="punch" value={{ active_status }} disabled>{{ active_status }}</button>
+            {% else %}
+                <button type="submit" id="punch" name="punch" value={{ active_status }}>{{ active_status }}</button>
+            {% endif %}
+        </form>
+        タスク<br>
+        前回くじ引き:{{ latest_kuji_log.today|date:"m/d H:i:s T" }}
+        <form action = "" method="post" name="kuji">
+            {% csrf_token %}
+            <select name="gear">
+                <option value=''>ギアを選んでください</option>
+                {% for gk in gear_kind %}
+                    {% if gk == gear %}
+                        <option value={{gk}} selected>{{gk}}</option>
+                    {% else %}
+                        <option value={{gk}}>{{gk}}</option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+            <input type="hidden" id="kuji" name="kuji" value="kuji">
+            <input type="hidden" id="active_status" name="active_status" value={{ active_status }}>
+            <input type="hidden" id="task_status" name="task_status" value={{ task_status }}>
+            <input type="submit" id="send_kuji" name="send_kuji" value="くじ">
+        </form>
+        <form action = "" method="post" name="task">
+            {% csrf_token %}
+            <input type="hidden" id="active_exists" name="active_exists" value={{ task_exists }}>
+            <input type="hidden" id="activity_id" name="activity_id" value={{ task_id }}>
+            {% if not task_exists %}
+            <select name="task_name">
+                <option value=''>科目を選んでください</option>
+                {% for subject in subject_all %}
+                    {% if task_name == subject.subject %}
+                        <option value={{subject.subject}} selected>{{subject.subject}}</option>
+                    {% else %}
+                        <option value={{subject.subject}}>{{subject.subject}}</option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+            {% else %}
+                {{ task_name }}
+                <input type="hidden" id="task_name" name="task_name" value={{ task_name }}>
+            {% endif %}
+            <input type="hidden" id="active_type" name="active_type" value="task">
+            <input type="hidden" id="button_type" name="button_type" value="">
+            <button type="submit" id="punch" name="punch">{{ task_status }}</button>
+            <br>
+            {% if task_exists %}
+                 MEMO<br>
+                <textarea name="memo" cols="100" rows="5">{{ task_memo }}</textarea>
+                <button type="submit" id="register_memo" name="register_memo">登録</button>
+            {% endif %}
+        </form>
+        <details>
+            <summary>復習</summary>
+            <form action = "" method="post" name="send_review">
+                {% csrf_token %}
+                {{ review_formset.management_form }}
+                {% for form in review_formset %}
+                    科目:{{form.subject_id}}
+                    復習No:{{form.version}}
+                    概要:{{form.summary}}
+                    オンライン:{{form.is_online}}<br>
+                    {% for field in form.hidden_fields %}
+                        {{ field }}
+                    {% endfor %}
+                {% endfor %}
+                <input type="submit" id="register_review" name="register_review" value="送信">
+            </form>
+        </details>
+        {% if not subject_logs is None %}
+        過去ログ
+        <table border="1">
+            <tr>
+                <th>科目</th>
+                <th>実施時刻</th>
+                <th>メモ</th>
+            </tr>
+            {% for subject in subject_logs %}
+                <tr>
+                    <td>{{ subject.task }}</td>
+                    <td>{{ subject.begin_time| date:"m/d H:i:s T" }}</td>
+                    <td>{{ subject.memo }}</td>
+                </tr>
+            {% endfor %}    
+        </table>
+        {% endif %}
+        <table border="1">
+            <tr>
+                <th>タスク名</th>
+                <th>開始時間</th>
+                <th>終了時間</th>
+                <th>活動時間</th>
+                <th>メモ</th>
+            </tr>
+            {% for activity in today_activity %}
+            <tr>
+                <td>{{activity.task}}</td>
+                <td>{{activity.begin_time|date:"H:i:s T"}}</td>
+                <td>{{activity.end_time|date:"H:i:s T"}}</td>
+                <td>{{activity.format_period}}</td>
+                <td>{{activity.memo}}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </body>
+    <script src="{% static 'js/getNow.js' %}"></script>
+    <script>
+        setInterval(getNow,1000);
+        setInterval(count_up,1000);
+        document.getElementById('punch').onclick = function(){
+            console.log('timer')
+            document.getElementById('button_type').value = 'punch';
+            document.activity.submit();
+            setInterval(count_up(timer),1000);
+        }
+        document.getElementById('register_memo').onclick = function(){
+            document.getElementById('punch').setAttribute("disabled",true);
+            document.getElementById('button_type').value = 'register_memo';
+            document.activity.submit();
+        }
+        function count_up(timer){
+            var task_active_time = Number("{{task_active_time}}")
+            var now = new Date().getTime() / 1000;
+            var timer = now - task_active_time;
+            console.log(timer);
+            var Hour = ('0' + Math.floor(timer/3600)).slice(-2);
+            var Min = ('0' + Math.floor((timer%3600)/60)).slice(-2);
+            var Sec = ('0' +Math.floor( (timer%3600)%60)).slice(-2);
+            var msg = Hour+":"+Min+":"+Sec
+            console.log(msg);
+            document.getElementById("stopwatch").innerHTML = msg
+            timer++;
+            return timer
+        }
+    </script>
+</html>
+
