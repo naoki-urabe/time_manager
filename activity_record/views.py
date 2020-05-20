@@ -349,55 +349,7 @@ class ActivityRecordView(View):
             else:
                 print(formset.errors)
                 return render(request, 'activity_record.html', context)
-class RegisterScheduleView(View):
-    def get(self, request, *args, **kwargs):
-        formset = ActiveRecordFormSet()
-        context = {
-            'formset':formset
-        }
-        return render(request,'register_schedule.html', context)
-        
-    def post(self, request, *args, **kwargs):
-        formset = ActiveRecordFormSet(request.POST or None, queryset=ActiveRecord.objects.filter(begin_time__lte=localtime(timezone.now())))
-        if formset.is_valid():
-            instance = formset.save(commit=False)
-            for inst in formset.deleted_objects:
-                inst.delete()
-            for form in instance:
-                schedule = form
-                if schedule.task == None:
-                    continue
-                if schedule.active_type == "schedule":
-                    schedule = form.save(commit=False)
-                    if not re.search('(予)',schedule.task):
-                        schedule.task = schedule.task + '(予)'
-                    if not schedule.today:
-                        schedule.today_jst = schedule.today.date
-                    if not schedule.today_jst:
-                        schedule.today_jst_str = schedule.today.date().strftime('%Y%m%d')
-                    schedule.is_active = False
-                    form.save()
-                else:
-                    if schedule.end_time != None:
-                        schedule.is_active = False
-                        schedule.period = timedelta_to_sec(schedule.end_time - schedule.begin_time)
-                        schedule.format_period = format_timedelta(schedule.period)
-                    elif schedule.begin_time != None:
-                        schedule.is_active = True
-                    schedule.save()
-            formset = GearFormSet()
-            formset = ActiveRecordFormSet()
-            context = {
-                'register_success_msg':"登録完了",
-                'formset':formset
-            }
-            return render(request, 'register_schedule.html',context)
-        else:
-            print(formset.errors)
-            context = {
-                'formset':formset
-            }
-            return render(request, 'register_schedule.html',context)
+
 class ActivityLogView(View):
     def get(self, request, *args, **kwargs):
         all_active_logs = get_all_active_logs()
@@ -536,7 +488,13 @@ class EditLogView(View):
     def post(self, request,today_jst_str, *args, **kwargs):
         formset = ActiveRecordFormSet(request.POST or None, queryset=ActiveRecord.objects.filter(today_jst_str=today_jst_str))
         if formset.is_valid():
-            formset.save()
+            instance = formset.save(commit=False)
+            for form in instance:
+                form.today_jst_str = localtime(timezone.now()).strftime('%Y%m%d')
+                form.is_active = False
+                form.period = timedelta_to_sec(form.end_time - form.begin_time)
+                form.format_period = format_timedelta(form.period)
+                form.save()
             formset = ActiveRecordFormSet(request.POST or None, queryset=ActiveRecord.objects.filter(today_jst_str=today_jst_str).order_by('-today'))
             context = {
                 'register_msg': '登録完了',
