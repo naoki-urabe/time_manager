@@ -551,7 +551,6 @@ def get_all_active_logs():
     return all_active_logs
 
 activity_record = ActivityRecordView.as_view()
-register_schedule = RegisterScheduleView.as_view()
 activity_log = ActivityLogView.as_view()
 activity_detail = ActivityDetailView.as_view()
 subject_log = SubjectLogView.as_view()
