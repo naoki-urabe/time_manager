@@ -34,7 +34,7 @@ class ActivityRecordView(View):
         active_id = latest_active_record.id if active_exists else -1
         active_status = '活動中' if active_exists else '睡眠中'
         active_memo = latest_active_record.memo if active_exists else ''
-        today_activities =  ActiveRecord.objects.filter(today_jst=latest_active_record.today_jst).order_by('-today')
+        today_activities =  ActiveRecord.objects.filter(today_jst_str=latest_active_record.today_jst_str).order_by('-today')
         latest_kuji_log = KujiLog.objects.all().order_by('-today').first()
         subject_logs = ActiveRecord.objects.filter(task=latest_task_record.task).order_by('-today')[:3] if task_name!='' else None
         subject_all = Subject.objects.all()
@@ -115,7 +115,7 @@ class ActivityRecordView(View):
             active_id = latest_active_record.id if active_exists else -1
             active_status = '活動中' if active_exists else '睡眠中'
             active_memo = latest_active_record.memo if active_exists else ''
-            today_activities =  ActiveRecord.objects.filter(today_jst=latest_active_record.today_jst).order_by('-today')
+            today_activities =  ActiveRecord.objects.filter(today_jst_str=latest_active_record.today_jst_str).order_by('-today')
             latest_kuji_log = KujiLog.objects.all().order_by('-today').first()
             gear = int(request.POST['gear'])
             not_selected_subjects = Gear.objects.filter(gear=gear,latest_ver=0)
@@ -212,7 +212,7 @@ class ActivityRecordView(View):
             active_id = latest_active_record.id if active_exists else -1
             active_status = '活動中' if active_exists else '睡眠中'
             active_memo = latest_active_record.memo if active_exists else ''
-            today_activities =  ActiveRecord.objects.filter(today_jst=latest_active_record.today_jst).order_by('-today')
+            today_activities =  ActiveRecord.objects.filter(today_jst_str=latest_active_record.today_jst_str).order_by('-today')
             latest_kuji_log = KujiLog.objects.all().order_by('-today').first()
             subject_logs = ActiveRecord.objects.filter(task=latest_task_record.task).order_by('-today')[:3] if task_name!='' else None
             subject_all = Subject.objects.all()
@@ -258,7 +258,7 @@ class ActivityRecordView(View):
             active_id = latest_active_record.id if active_exists else -1
             active_status = '活動中' if active_exists else '睡眠中'
             active_memo = latest_active_record.memo if active_exists else ''
-            today_activities =  ActiveRecord.objects.filter(today_jst=latest_active_record.today_jst).order_by('-today')
+            today_activities =  ActiveRecord.objects.filter(today_jst_str=latest_active_record.today_jst_str).order_by('-today')
             latest_kuji_log = KujiLog.objects.all().order_by('-today').first()
             subject_logs = ActiveRecord.objects.filter(task=latest_task_record.task).order_by('-today')[:3] if task_name!='' else None
             subject_all = Subject.objects.all()
@@ -319,7 +319,7 @@ class ActivityRecordView(View):
                 active_id = latest_active_record.id if active_exists else -1
                 active_status = '活動中' if active_exists else '睡眠中'
                 active_memo = latest_active_record.memo if active_exists else ''
-                today_activities =  ActiveRecord.objects.filter(today_jst=latest_active_record.today_jst).order_by('-today')
+                today_activities =  ActiveRecord.objects.filter(today_jst_str=latest_active_record.today_jst_str).order_by('-today')
                 latest_kuji_log = KujiLog.objects.all().order_by('-today').first()
                 subject_logs = ActiveRecord.objects.filter(task=latest_task_record.task).order_by('-today')[:3] if task_name!='' else None
                 subject_all = Subject.objects.all()
