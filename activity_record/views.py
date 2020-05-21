@@ -490,7 +490,7 @@ class EditLogView(View):
         if formset.is_valid():
             instance = formset.save(commit=False)
             for form in instance:
-                form.today_jst_str = localtime(timezone.now()).strftime('%Y%m%d')
+                form.today_jst_str = localtime(form.today).strftime('%Y%m%d')
                 form.is_active = False
                 form.period = timedelta_to_sec(form.end_time - form.begin_time)
                 form.format_period = format_timedelta(form.period)
