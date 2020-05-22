@@ -16,6 +16,7 @@ from .forms import SubjectFormSet
 from .forms import GearFormSet
 from .forms import ReviewFormSet
 import re
+from .modules import module
 
 # Create your views here.
 class ActivityRecordView(View):
@@ -194,8 +195,8 @@ class ActivityRecordView(View):
                 print(request.POST)
                 active_record = ActiveRecord.objects.get(id=activity_id,active_type=active_type)
                 active_record.end_time=localtime(timezone.now())
-                active_record.period = timedelta_to_sec(active_record.end_time - active_record.begin_time)
-                active_record.format_period = format_timedelta(active_record.period)
+                active_record.period = module.timedelta_to_sec(active_record.end_time - active_record.begin_time)
+                active_record.format_period = module.format_timedelta(active_record.period)
                 print("format period "+active_record.format_period)
                 active_record.is_active = False
                 active_record.memo = memo
@@ -352,7 +353,7 @@ class ActivityRecordView(View):
 
 class ActivityLogView(View):
     def get(self, request, *args, **kwargs):
-        all_active_logs = get_all_active_logs()
+        all_active_logs = module.get_all_active_logs()
         context = {
                 'all_active_logs':all_active_logs
             }
@@ -492,8 +493,8 @@ class EditLogView(View):
             for form in instance:
                 form.today_jst_str = localtime(form.today).strftime('%Y%m%d')
                 form.is_active = False
-                form.period = timedelta_to_sec(form.end_time - form.begin_time)
-                form.format_period = format_timedelta(form.period)
+                form.period = module.timedelta_to_sec(form.end_time - form.begin_time)
+                form.format_period = module.format_timedelta(form.period)
                 form.save()
             formset = ActiveRecordFormSet(request.POST or None, queryset=ActiveRecord.objects.filter(today_jst_str=today_jst_str).order_by('-today'))
             context = {
@@ -510,45 +511,6 @@ class EditLogView(View):
                 'today_jst_str':today_jst_str
             }
             return render(request, 'edit_log.html',context)
-def to_jst(time):
-    print((time + datetime.timedelta(hours=9)).date())
-    return (time + datetime.timedelta(hours=9)).date()
-def format_timedelta(sec):
-    hours=sec//3600
-    minutes=(sec%3600)//60
-    seconds=(sec%3600)%60
-    return "{0:02d}:{1:02d}:{2:02d}".format(hours,minutes,seconds)
-def timedelta_to_sec(timedelta):
-    sec = timedelta.days*86400 + timedelta.seconds
-    return sec
-def check_activity_exists(active_type,today_jst):
-    activity_exists = ActiveRecord.objects.filter(is_active=True,active_type=active_type,today_jst=today_jst).exists()
-    return activity_exists    
-def check_todays_active_exists(today_jst):
-    todays_active_exists = ActiveRecord.objects.filter(active_type="active",today_jst=today_jst).exists()
-    return todays_active_exists 
-def get_activity_histories(today_jst):
-    activity_histories = ActiveRecord.objects.filter(today_jst=today_jst).order_by('-today')
-    return activity_histories
-def get_activity_id(today_jst,active_exists,active_type):
-    active_id = -1
-    if active_exists:
-        active_id =  ActiveRecord.objects.get(today_jst=today_jst,is_active=True,active_type=active_type).id
-    return active_id
-def get_task_name(task_id):
-    task_name = ""
-    if task_id != -1:
-        task_name = ActiveRecord.objects.get(id = task_id,active_type='task').task
-    return task_name
-def get_memo(task_id,active_type):
-    task_memo = ""
-    if task_id != -1:
-        task_memo = ActiveRecord.objects.get(id = task_id,active_type=active_type).memo
-    return task_memo
-def get_all_active_logs():
-    all_active_logs = ActiveRecord.objects.filter(active_type='active').order_by('-today')
-    print(all_active_logs)
-    return all_active_logs
 
 activity_record = ActivityRecordView.as_view()
 activity_log = ActivityLogView.as_view()
