@@ -1,24 +1,23 @@
 from django.shortcuts import render, redirect
 from django.views import View
-from .models import ActiveRecord
-from .models import Gear
-from .models import Subject
-from .models import KujiLog
-from .models import Review
+from activity_record.models.active_record import ActiveRecord
+from activity_record.models.gear import Gear
+from activity_record.models.kuji_log import KujiLog
+from activity_record.models.review import Review
+from activity_record.models.subject import Subject
 from django.db.models import Q
 from django.utils import timezone
 from django.utils.timezone import localtime
 import datetime
 from time import mktime
-from .forms import ActiveRecordFormSet
-from .forms import ActiveRecordForm
-from .forms import SubjectFormSet
-from .forms import GearFormSet
-from .forms import ReviewFormSet
+from activity_record.forms import ActiveRecordFormSet
+from activity_record.forms import ActiveRecordForm
+from activity_record.forms import SubjectFormSet
+from activity_record.forms import GearFormSet
+from activity_record.forms import ReviewFormSet
 import re
-from .modules import module
+from activity_record.modules import module
 
-# Create your views here.
 class ActivityRecordView(View):
     def get(self, request, *args, **kwargs):
         
@@ -350,173 +349,3 @@ class ActivityRecordView(View):
             else:
                 print(formset.errors)
                 return render(request, 'activity_record.html', context)
-
-class ActivityLogView(View):
-    def get(self, request, *args, **kwargs):
-        all_active_logs = module.get_all_active_logs()
-        context = {
-                'all_active_logs':all_active_logs
-            }
-        return render(request, 'show_logs.html',context)
-class ActivityDetailView(View):
-    def get(self, request,today_jst_str, *args, **kwargs):
-        active_histories = ActiveRecord.objects.filter(today_jst_str=today_jst_str).order_by('-today')
-        print(active_histories)
-        context = {
-            'today_activity': active_histories,
-            'today_jst_str': today_jst_str
-        }
-        return render(request, 'log_detail.html', context)
-class SubjectLogView(View):
-    def get(self, request, *args, **kwargs):
-        subject_logs = None
-        context = {
-            'subject_logs':subject_logs
-        }
-        return render(request, 'subject_log.html',context)
-    def post(self, request, *args, **kwargs):
-        subject = request.POST['subject']
-        subject_logs = ActiveRecord.objects.filter(task=subject).order_by('-today')
-        context = {
-            'subject_logs':subject_logs
-        }
-        return render(request, 'subject_log.html',context)
-
-class RegisterSubjectView(View):
-    def get(self, request, *args, **kwargs):
-        formset = SubjectFormSet()
-        context = {
-            'formset': formset
-        }
-        return render(request, 'register_subject.html',context)
-    def post(self, request, *args, **kwargs):
-        formset = SubjectFormSet(request.POST or None, queryset=Subject.objects.all())
-        if formset.is_valid():
-            instance = formset.save(commit=False)
-            print(instance)
-            for inst in formset.deleted_objects:
-                inst.delete()
-            for form in instance:
-                print('-----------------------')
-                print(form)
-                print('-----------------------')
-                form.save()
-            formset = SubjectFormSet()
-            context = {
-                'formset': formset
-            }
-            return render(request, 'register_subject.html',context)
-        else:
-            print(formset._errors)
-            context = {
-                'register_msg': formset._errors,
-                'formset': formset
-            }
-            return render(request, 'register_subject.html',context)
-
-class RegisterGearView(View):
-    def get(self, request, *args, **kwargs):
-        formset = GearFormSet(queryset=Gear.objects.order_by('gear'))
-        context = {
-            'formset': formset
-        }
-        return render(request, 'register_gear.html',context)
-    def post(self, request, *args, **kwargs):
-        formset = GearFormSet(request.POST or None, queryset=Gear.objects.all())
-        print(formset)
-        if formset.is_valid():
-            instance = formset.save(commit=False)
-            for inst in formset.deleted_objects:
-                inst.delete()
-            for form in instance:
-                print(form)
-                print('000000000000')
-                form.save()
-            formset = GearFormSet(queryset=Gear.objects.order_by('gear'))
-            context = {
-                'register_msg': '登録完了',
-                'formset': formset
-            }
-            return render(request, 'register_gear.html',context)
-        else:
-            print(formset._errors)
-            context = {
-                'register_msg': formset._errors,
-                'formset': formset
-            }
-            return render(request, 'register_gear.html',context)
-
-class ReviewListView(View):
-    def get(self, request, *args, **kwargs):
-        review_list = Review.objects.all().order_by('-today')
-        context = {
-                'review_list':review_list
-            }
-        return render(request, 'review_list.html',context)
-    def post(self, request, *args, **kwargs):
-        formset = GearFormSet(request.POST or None, queryset=Gear.objects.all())
-        print(formset)
-        if formset.is_valid():
-            instance = formset.save(commit=False)
-            for inst in formset.deleted_objects:
-                inst.delete()
-            for form in instance:
-                print(form)
-                print('000000000000')
-                form.save()
-            formset = GearFormSet(queryset=Gear.objects.order_by('gear'))
-            context = {
-                'register_msg': '登録完了',
-                'formset': formset
-            }
-            return render(request, 'register_gear.html',context)
-        else:
-            print(formset._errors)
-            context = {
-                'register_msg': formset._errors,
-                'formset': formset
-            }
-            return render(request, 'register_gear.html',context)
-
-class EditLogView(View):
-    def get(self, request,today_jst_str, *args, **kwargs):
-        formset = ActiveRecordFormSet(request.POST or None, queryset=ActiveRecord.objects.filter(today_jst_str=today_jst_str).order_by('-today'))
-        context = {
-            'formset':formset,
-            'today_jst_str':today_jst_str
-        }
-        return render(request, 'edit_log.html',context)
-    def post(self, request,today_jst_str, *args, **kwargs):
-        formset = ActiveRecordFormSet(request.POST or None, queryset=ActiveRecord.objects.filter(today_jst_str=today_jst_str))
-        if formset.is_valid():
-            instance = formset.save(commit=False)
-            for form in instance:
-                form.today_jst_str = localtime(form.today).strftime('%Y%m%d')
-                form.is_active = False
-                form.period = module.timedelta_to_sec(form.end_time - form.begin_time)
-                form.format_period = module.format_timedelta(form.period)
-                form.save()
-            formset = ActiveRecordFormSet(request.POST or None, queryset=ActiveRecord.objects.filter(today_jst_str=today_jst_str).order_by('-today'))
-            context = {
-                'register_msg': '登録完了',
-                'formset':formset,
-                'today_jst_str':today_jst_str
-            }
-            return render(request, 'edit_log.html',context)
-        else:
-            print(formset._error())
-            context = {
-                'register_msg': '登録失敗',
-                'formset':formset,
-                'today_jst_str':today_jst_str
-            }
-            return render(request, 'edit_log.html',context)
-
-activity_record = ActivityRecordView.as_view()
-activity_log = ActivityLogView.as_view()
-activity_detail = ActivityDetailView.as_view()
-subject_log = SubjectLogView.as_view()
-register_subject = RegisterSubjectView.as_view()
-register_gear = RegisterGearView.as_view()
-review_list = ReviewListView.as_view()
-edit_log = EditLogView.as_view()
