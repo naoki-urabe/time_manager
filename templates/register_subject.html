@@ -5,6 +5,7 @@
     {% for form in formset %}
         科目名:{{form.subject}}
         科目ID:{{form.subject_id}}
+        科目種別:{{form.subject_type}}
         削除{{ form.DELETE }}<br>
         {% for field in form.hidden_fields %}
             {{ field }}

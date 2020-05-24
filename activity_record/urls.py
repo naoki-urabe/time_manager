@@ -12,4 +12,6 @@ urlpatterns = [
     path('register_subject', views.register_subject, name='register_subject'),
     path('register_gear', views.register_gear, name='register_gear'),
     path('review_list', views.review_list, name='review_list'),
+    path('study_log', views.study_log, name='study_log'),
+    path('kuji_log', views.kuji_log, name='kuji_log'),
 ]

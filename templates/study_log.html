@@ -1,0 +1,21 @@
+<a href="{% url 'activity_record' %}">今日の記録へ</a>
+<table border="1">
+    <tr>
+        <th>タスク名</th>
+        <th>日付</th>
+        <th>開始時間</th>
+        <th>終了時間</th>
+        <th>活動時間</th>
+        <th>メモ</th>
+    </tr>
+    {% for activity in study_log %}
+    <tr>
+    <td>{{activity.task}}</td>
+    <td>{{activity.today|date:"m/d H:i:s T"}}</td>
+    <td>{{activity.begin_time|date:"H:i:s T"}}</td>
+    <td>{{activity.end_time|date:"H:i:s T"}}</td>
+    <td>{{activity.format_period}}</td>
+    <td>{{activity.memo}}</td>
+    {% endfor %}
+</table>
+<a href="{% url 'activity_record' %}">今日の記録へ</a>

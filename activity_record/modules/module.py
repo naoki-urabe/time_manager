@@ -22,3 +22,7 @@ def get_all_active_logs():
     all_active_logs = ActiveRecord.objects.filter(active_type='active').order_by('-today')
     print(all_active_logs)
     return all_active_logs
+
+def compare_study_amount(today_study_time_sum, yesterday_study_time_sum):
+    print(today_study_time_sum, yesterday_study_time_sum)
+    return "{:.2f}".format((today_study_time_sum/yesterday_study_time_sum)*100)

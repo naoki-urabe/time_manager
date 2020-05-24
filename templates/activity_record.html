@@ -32,6 +32,8 @@
         <a href="{% url 'register_subject' %}">科目登録</a>
         <a href="{% url 'register_gear' %}">ギア登録</a>
         <a href="{% url 'review_list' %}">復習一覧</a>
+        <a href="{% url 'kuji_log' %}">くじ引き履歴一覧</a>
+        <a href="{% url 'study_log' %}">学習履歴一覧</a>
         <div id="timeline" style="height: 500px;"></div>
         
         <details>
@@ -62,11 +64,13 @@
 
         <p id="Clock"></p>
         <p id="stopwatch"></p>
+        本日勉強時間:{{today_study_time_sum}}<br>
+        昨日勉強時間:{{yesterday_study_time_sum}}<br>
+        前日比:{{compare_percentage}}%<br>
         <form action = "" method="post" name="activity">
             {% csrf_token %}
             <input type="hidden" id="active_exists" name="active_exists" value={{ active_exists }}>
             <input type="hidden" id="activity_id" name="activity_id" value={{ active_id }}>
-            <input type="hidden" id="active_type" name="active_type" value="active">
             <input type="hidden" id="task_name" name="task_name" value="active">
             {% if active_id != -1 %}
                 <details>
@@ -119,7 +123,6 @@
                 {{ task_name }}
                 <input type="hidden" id="task_name" name="task_name" value={{ task_name }}>
             {% endif %}
-            <input type="hidden" id="active_type" name="active_type" value="task">
             <input type="hidden" id="button_type" name="button_type" value="">
             <button type="submit" id="punch" name="punch">{{ task_status }}</button>
             <br>

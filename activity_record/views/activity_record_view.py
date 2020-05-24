@@ -17,18 +17,19 @@ from activity_record.forms import GearFormSet
 from activity_record.forms import ReviewFormSet
 import re
 from activity_record.modules import module
+from django.db.models import Sum
 
 class ActivityRecordView(View):
     def get(self, request, *args, **kwargs):
         
-        latest_task_record = ActiveRecord.objects.filter(active_type='task').order_by('-today').first()
+        latest_task_record = ActiveRecord.objects.exclude(active_type='active').order_by('-today').first()
         task_exists = latest_task_record.is_active
-        selected_task = latest_task_record if task_exists else None
         task_id = latest_task_record.id if task_exists else -1
         task_name = latest_task_record.task if task_exists else ''
         task_memo = latest_task_record.memo if task_exists else ''
         task_status = '終了' if task_exists else '開始'
         latest_active_record = ActiveRecord.objects.filter(active_type='active').order_by('-today').first()
+        yesterday_active_record = ActiveRecord.objects.filter(active_type='active').order_by('-today')[1]
         active_exists = latest_active_record.is_active
         has_already_today_active =  localtime(timezone.now()).date()==latest_active_record.today_jst and not latest_active_record.is_active
         active_id = latest_active_record.id if active_exists else -1
@@ -39,8 +40,11 @@ class ActivityRecordView(View):
         subject_logs = ActiveRecord.objects.filter(task=latest_task_record.task).order_by('-today')[:3] if task_name!='' else None
         subject_all = Subject.objects.all()
         gear_kind = Gear.objects.all().values_list('gear', flat=True).order_by('gear').distinct()
-        for gear in gear_kind:
-            print(gear)
+        today_study_time_sum_dic = ActiveRecord.objects.exclude(active_type="active").filter(today_jst_str=latest_active_record.today_jst_str).aggregate(Sum('period'))
+        yesterday_study_time_sum_dic = ActiveRecord.objects.exclude(active_type="active").filter(today_jst_str=yesterday_active_record.today_jst_str).aggregate(Sum('period'))
+        today_study_time_sum = int(today_study_time_sum_dic['period__sum'])
+        yesterday_study_time_sum = int(yesterday_study_time_sum_dic['period__sum'])
+        compare_percentage = module.compare_study_amount(today_study_time_sum, yesterday_study_time_sum)
         active_form = ActiveRecordForm(
             initial={
                 'task':'active',
@@ -84,7 +88,10 @@ class ActivityRecordView(View):
             'subject_all': subject_all,
             'gear_kind': gear_kind,
             'review_formset': review_formset,
-            'todays_review': todays_review
+            'todays_review': todays_review,
+            'today_study_time_sum': module.format_timedelta(today_study_time_sum),
+            'yesterday_study_time_sum': module.format_timedelta(yesterday_study_time_sum),
+            'compare_percentage': compare_percentage
         }
         """
         context = {
@@ -102,9 +109,15 @@ class ActivityRecordView(View):
         return render(request, 'activity_record.html', context)
     def post(self, request, *args, **kwargs):
         print(request.POST)
+        latest_active_record = ActiveRecord.objects.filter(active_type='active').order_by('-today').first()
+        yesterday_active_record = ActiveRecord.objects.filter(active_type='active').order_by('-today')[1]
+        today_study_time_sum_dic = ActiveRecord.objects.exclude(active_type="active").filter(today_jst_str=latest_active_record.today_jst_str).aggregate(Sum('period'))
+        yesterday_study_time_sum_dic = ActiveRecord.objects.exclude(active_type="active").filter(today_jst_str=yesterday_active_record.today_jst_str).aggregate(Sum('period'))
+        today_study_time_sum = int(today_study_time_sum_dic['period__sum'])
+        yesterday_study_time_sum = int(yesterday_study_time_sum_dic['period__sum'])
+        compare_percentage = module.compare_study_amount(today_study_time_sum, yesterday_study_time_sum)
         if "kuji" in request.POST:
-
-            latest_task_record = ActiveRecord.objects.filter(active_type='task').order_by('-today').first()
+            latest_task_record = ActiveRecord.objects.exclude(active_type='task').order_by('-today').first()
             task_exists = latest_task_record.is_active
             task_id = latest_task_record.id if task_exists else -1
             task_memo = latest_task_record.memo if task_exists else ''
@@ -177,30 +190,41 @@ class ActivityRecordView(View):
                 'task_active_time': (latest_task_record.end_time if not latest_task_record.end_time is None else latest_task_record.begin_time).timestamp(),
                 'subject_all': subject_all,
                 'gear_kind': gear_kind,
-                'review_formset': review_formset
+                'review_formset': review_formset,
+                'today_study_time_sum': module.format_timedelta(today_study_time_sum),
+                'yesterday_study_time_sum': module.format_timedelta(yesterday_study_time_sum),
+                'compare_percentage': compare_percentage
             }
             return render(request, 'activity_record.html', context)
         if "punch" in request.POST:
             active_form = ActiveRecordForm(request.POST)
             activity_id=request.POST['activity_id']
-            active_type=request.POST['active_type']
             if activity_id=='-1':
                 task_name=request.POST['task_name']
+                active_type = ""
+                if task_name != "active":
+                    active_type = Subject.objects.get(subject=task_name).subject_type
+                else:
+                    active_type = "active"
                 active_record = ActiveRecord(task=task_name,begin_time=localtime(timezone.now()),today=timezone.now(),today_jst=localtime(timezone.now()),today_jst_str=localtime(timezone.now()).strftime('%Y%m%d'),active_type=active_type,memo="")
                 print(active_record.today_jst_str)
                 active_record.save()
             else:
                 memo = request.POST['memo']
                 print(request.POST)
-                active_record = ActiveRecord.objects.get(id=activity_id,active_type=active_type)
+                active_record = ActiveRecord.objects.get(id=activity_id)
                 active_record.end_time=localtime(timezone.now())
                 active_record.period = module.timedelta_to_sec(active_record.end_time - active_record.begin_time)
                 active_record.format_period = module.format_timedelta(active_record.period)
                 print("format period "+active_record.format_period)
                 active_record.is_active = False
                 active_record.memo = memo
+                if request.POST["task_name"] == "active":
+                    today_study_time_sum_dic = ActiveRecord.objects.exclude(active_type="active").filter(today_jst_str=latest_active_record.today_jst_str).aggregate(Sum('period'))
+                    today_study_time_sum = int(today_study_time_sum_dic['period__sum'])
+                    active_record.study_amount = today_study_time_sum
                 active_record.save()
-            latest_task_record = ActiveRecord.objects.filter(active_type='task').order_by('-today').first()
+            latest_task_record = ActiveRecord.objects.exclude(active_type='active').order_by('-today').first()
             task_exists = latest_task_record.is_active
             task_id = latest_task_record.id if task_exists else -1
             task_name = latest_task_record.task if task_exists else ''
@@ -236,17 +260,19 @@ class ActivityRecordView(View):
                 'task_active_time': (latest_task_record.end_time if not latest_task_record.end_time is None else latest_task_record.begin_time).timestamp(),
                 'subject_all': subject_all,
                 'gear_kind': gear_kind,
-                'review_formset': review_formset
+                'review_formset': review_formset,
+                'today_study_time_sum': module.format_timedelta(today_study_time_sum),
+                'yesterday_study_time_sum': module.format_timedelta(yesterday_study_time_sum),
+                'compare_percentage': compare_percentage
                 
             }
             return render(request, 'activity_record.html', context)
         if "register_memo" in request.POST:
-            print('right')
             activity_id=request.POST['activity_id']
             active_record = ActiveRecord.objects.filter(id=activity_id).first()
             active_record.memo = request.POST['memo']
             active_record.save()
-            latest_task_record = ActiveRecord.objects.filter(active_type='task').order_by('-today').first()
+            latest_task_record = ActiveRecord.objects.exclude(active_type='active').order_by('-today').first()
             task_exists = latest_task_record.is_active
             task_id = latest_task_record.id if task_exists else -1
             task_name = latest_task_record.task if task_exists else ''
@@ -282,7 +308,10 @@ class ActivityRecordView(View):
                 'task_active_time': (latest_task_record.end_time if not latest_task_record.end_time is None else latest_task_record.begin_time).timestamp(),
                 'subject_all': subject_all,
                 'gear_kind': gear_kind,
-                'review_formset': review_formset
+                'review_formset': review_formset,
+                'today_study_time_sum': module.format_timedelta(today_study_time_sum),
+                'yesterday_study_time_sum': module.format_timedelta(yesterday_study_time_sum),
+                'compare_percentage': compare_percentage
             }
             return render(request, 'activity_record.html', context)
         if "register_review" in request.POST:
@@ -307,7 +336,7 @@ class ActivityRecordView(View):
                     print('---------------------------')
                 formset.save()
             
-                latest_task_record = ActiveRecord.objects.filter(active_type='task').order_by('-today').first()
+                latest_task_record = ActiveRecord.objects.exclude(active_type='task').order_by('-today').first()
                 task_exists = latest_task_record.is_active
                 task_id = latest_task_record.id if task_exists else -1
                 task_name = latest_task_record.task if task_exists else ''
@@ -343,7 +372,10 @@ class ActivityRecordView(View):
                     'task_active_time': (latest_task_record.end_time if not latest_task_record.end_time is None else latest_task_record.begin_time).timestamp(),
                     'subject_all': subject_all,
                     'gear_kind': gear_kind,
-                    'review_formset': review_formset
+                    'review_formset': review_formset,
+                    'today_study_time_sum': module.format_timedelta(today_study_time_sum),
+                    'yesterday_study_time_sum': module.format_timedelta(yesterday_study_time_sum),
+                    'compare_percentage': compare_percentage
                 }        
                 return render(request, 'activity_record.html', context)
             else:
