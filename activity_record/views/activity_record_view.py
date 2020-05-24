@@ -45,6 +45,7 @@ class ActivityRecordView(View):
         today_study_time_sum = int(today_study_time_sum_dic['period__sum']) if today_study_time_sum_dic['period__sum'] != None else 0
         yesterday_study_time_sum = int(yesterday_study_time_sum_dic['period__sum']) if yesterday_study_time_sum_dic['period__sum'] != None else 0
         compare_percentage = module.compare_study_amount(today_study_time_sum, yesterday_study_time_sum) if yesterday_study_time_sum != 0 else 0
+        compare_percentage_msg = str(abs(compare_percentage))+"%減" if compare_percentage < 0 else str(compare_percentage)+"%増"
         active_form = ActiveRecordForm(
             initial={
                 'task':'active',
@@ -91,7 +92,7 @@ class ActivityRecordView(View):
             'todays_review': todays_review,
             'today_study_time_sum': module.format_timedelta(today_study_time_sum),
             'yesterday_study_time_sum': module.format_timedelta(yesterday_study_time_sum),
-            'compare_percentage': compare_percentage
+            'compare_percentage_msg': compare_percentage_msg
         }
         """
         context = {
@@ -116,7 +117,7 @@ class ActivityRecordView(View):
         today_study_time_sum = int(today_study_time_sum_dic['period__sum']) if today_study_time_sum_dic['period__sum'] != None else 0
         yesterday_study_time_sum = int(yesterday_study_time_sum_dic['period__sum']) if yesterday_study_time_sum_dic['period__sum'] != None else 0
         compare_percentage = module.compare_study_amount(today_study_time_sum, yesterday_study_time_sum) if yesterday_study_time_sum != 0 else 0
-        
+        compare_percentage_msg = str(abs(compare_percentage))+"%減" if compare_percentage < 0 else str(compare_percentage)+"%増"
         if "kuji" in request.POST:
             latest_task_record = ActiveRecord.objects.exclude(active_type='task').order_by('-today').first()
             task_exists = latest_task_record.is_active
@@ -194,7 +195,8 @@ class ActivityRecordView(View):
                 'review_formset': review_formset,
                 'today_study_time_sum': module.format_timedelta(today_study_time_sum),
                 'yesterday_study_time_sum': module.format_timedelta(yesterday_study_time_sum),
-                'compare_percentage': compare_percentage
+                'compare_percentage': compare_percentage,
+                'compare_percentage_msg': compare_percentage_msg
             }
             return render(request, 'activity_record.html', context)
         if "punch" in request.POST:
@@ -264,8 +266,8 @@ class ActivityRecordView(View):
                 'review_formset': review_formset,
                 'today_study_time_sum': module.format_timedelta(today_study_time_sum),
                 'yesterday_study_time_sum': module.format_timedelta(yesterday_study_time_sum),
-                'compare_percentage': compare_percentage
-                
+                'compare_percentage': compare_percentage,
+                'compare_percentage_msg': compare_percentage_msg
             }
             return render(request, 'activity_record.html', context)
         if "register_memo" in request.POST:
@@ -312,7 +314,8 @@ class ActivityRecordView(View):
                 'review_formset': review_formset,
                 'today_study_time_sum': module.format_timedelta(today_study_time_sum),
                 'yesterday_study_time_sum': module.format_timedelta(yesterday_study_time_sum),
-                'compare_percentage': compare_percentage
+                'compare_percentage': compare_percentage,
+                'compare_percentage_msg': compare_percentage_msg
             }
             return render(request, 'activity_record.html', context)
         if "register_review" in request.POST:
@@ -376,7 +379,8 @@ class ActivityRecordView(View):
                     'review_formset': review_formset,
                     'today_study_time_sum': module.format_timedelta(today_study_time_sum),
                     'yesterday_study_time_sum': module.format_timedelta(yesterday_study_time_sum),
-                    'compare_percentage': compare_percentage
+                    'compare_percentage': compare_percentage,
+                    'compare_percentage_msg': compare_percentage_msg
                 }        
                 return render(request, 'activity_record.html', context)
             else:
