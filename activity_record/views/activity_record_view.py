@@ -40,11 +40,11 @@ class ActivityRecordView(View):
         subject_logs = ActiveRecord.objects.filter(task=latest_task_record.task).order_by('-today')[:3] if task_name!='' else None
         subject_all = Subject.objects.all()
         gear_kind = Gear.objects.all().values_list('gear', flat=True).order_by('gear').distinct()
-        today_study_time_sum_dic = ActiveRecord.objects.exclude(active_type="active").filter(today_jst_str=latest_active_record.today_jst_str).aggregate(Sum('period'))
-        yesterday_study_time_sum_dic = ActiveRecord.objects.exclude(active_type="active").filter(today_jst_str=yesterday_active_record.today_jst_str).aggregate(Sum('period'))
-        today_study_time_sum = int(today_study_time_sum_dic['period__sum'])
-        yesterday_study_time_sum = int(yesterday_study_time_sum_dic['period__sum'])
-        compare_percentage = module.compare_study_amount(today_study_time_sum, yesterday_study_time_sum)
+        today_study_time_sum_dic = ActiveRecord.objects.filter(active_type="study",today_jst_str=latest_active_record.today_jst_str).aggregate(Sum('period'))
+        yesterday_study_time_sum_dic = ActiveRecord.objects.filter(active_type="study",today_jst_str=yesterday_active_record.today_jst_str).aggregate(Sum('period'))
+        today_study_time_sum = int(today_study_time_sum_dic['period__sum']) if today_study_time_sum_dic['period__sum'] != None else 0
+        yesterday_study_time_sum = int(yesterday_study_time_sum_dic['period__sum']) if yesterday_study_time_sum_dic['period__sum'] != None else 0
+        compare_percentage = module.compare_study_amount(today_study_time_sum, yesterday_study_time_sum) if yesterday_study_time_sum != 0 else 0
         active_form = ActiveRecordForm(
             initial={
                 'task':'active',
@@ -111,11 +111,12 @@ class ActivityRecordView(View):
         print(request.POST)
         latest_active_record = ActiveRecord.objects.filter(active_type='active').order_by('-today').first()
         yesterday_active_record = ActiveRecord.objects.filter(active_type='active').order_by('-today')[1]
-        today_study_time_sum_dic = ActiveRecord.objects.exclude(active_type="active").filter(today_jst_str=latest_active_record.today_jst_str).aggregate(Sum('period'))
-        yesterday_study_time_sum_dic = ActiveRecord.objects.exclude(active_type="active").filter(today_jst_str=yesterday_active_record.today_jst_str).aggregate(Sum('period'))
-        today_study_time_sum = int(today_study_time_sum_dic['period__sum'])
-        yesterday_study_time_sum = int(yesterday_study_time_sum_dic['period__sum'])
-        compare_percentage = module.compare_study_amount(today_study_time_sum, yesterday_study_time_sum)
+        today_study_time_sum_dic = ActiveRecord.objects.filter(active_type="study",today_jst_str=latest_active_record.today_jst_str).aggregate(Sum('period'))
+        yesterday_study_time_sum_dic = ActiveRecord.objects.filter(active_type="study",today_jst_str=yesterday_active_record.today_jst_str).aggregate(Sum('period'))
+        today_study_time_sum = int(today_study_time_sum_dic['period__sum']) if today_study_time_sum_dic['period__sum'] != None else 0
+        yesterday_study_time_sum = int(yesterday_study_time_sum_dic['period__sum']) if yesterday_study_time_sum_dic['period__sum'] != None else 0
+        compare_percentage = module.compare_study_amount(today_study_time_sum, yesterday_study_time_sum) if yesterday_study_time_sum != 0 else 0
+        
         if "kuji" in request.POST:
             latest_task_record = ActiveRecord.objects.exclude(active_type='task').order_by('-today').first()
             task_exists = latest_task_record.is_active
