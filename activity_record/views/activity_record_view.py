@@ -226,6 +226,7 @@ class ActivityRecordView(View):
                     today_study_time_sum_dic = ActiveRecord.objects.exclude(active_type="active").filter(today_jst_str=latest_active_record.today_jst_str).aggregate(Sum('period'))
                     today_study_time_sum = int(today_study_time_sum_dic['period__sum'])
                     active_record.study_amount = today_study_time_sum
+                    active_record.format_study_amount = module.format_timedelta(today_study_time_sum)
                 active_record.save()
             latest_task_record = ActiveRecord.objects.exclude(active_type='active').order_by('-today').first()
             task_exists = latest_task_record.is_active

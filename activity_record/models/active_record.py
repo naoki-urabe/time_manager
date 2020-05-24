@@ -13,3 +13,4 @@ class ActiveRecord(models.Model):
     active_type = models.CharField(verbose_name='タスクタイプ', max_length=10,null=True)
     memo = models.TextField(verbose_name='メモ', max_length=800,null=True)
     study_amount = models.fields.IntegerField(null=True)
+    format_study_amount = models.CharField(verbose_name='', max_length=20,null=True)
