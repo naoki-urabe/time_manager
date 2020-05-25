@@ -45,7 +45,7 @@ class ActivityRecordView(View):
         today_study_time_sum = int(today_study_time_sum_dic['period__sum']) if today_study_time_sum_dic['period__sum'] != None else 0
         yesterday_study_time_sum = int(yesterday_study_time_sum_dic['period__sum']) if yesterday_study_time_sum_dic['period__sum'] != None else 0
         compare_percentage = module.compare_study_amount(today_study_time_sum, yesterday_study_time_sum) if yesterday_study_time_sum != 0 else 0
-        compare_percentage_msg = str(abs(compare_percentage))+"%減" if compare_percentage < 0 else str(compare_percentage)+"%増"
+        compare_percentage_msg = "{:.2f}".format(abs(compare_percentage))+"%減" if compare_percentage < 0 else "{:.2f}".format(compare_percentage)+"%増"
         active_form = ActiveRecordForm(
             initial={
                 'task':'active',
@@ -117,7 +117,7 @@ class ActivityRecordView(View):
         today_study_time_sum = int(today_study_time_sum_dic['period__sum']) if today_study_time_sum_dic['period__sum'] != None else 0
         yesterday_study_time_sum = int(yesterday_study_time_sum_dic['period__sum']) if yesterday_study_time_sum_dic['period__sum'] != None else 0
         compare_percentage = module.compare_study_amount(today_study_time_sum, yesterday_study_time_sum) if yesterday_study_time_sum != 0 else 0
-        compare_percentage_msg = str(abs(compare_percentage))+"%減" if compare_percentage < 0 else str(compare_percentage)+"%増"
+        compare_percentage_msg =  "{:.2f}".format(abs(compare_percentage))+"%減" if compare_percentage < 0 else  "{:.2f}".format(compare_percentage)+"%増"
         if "kuji" in request.POST:
             latest_task_record = ActiveRecord.objects.exclude(active_type='task').order_by('-today').first()
             task_exists = latest_task_record.is_active
@@ -223,8 +223,8 @@ class ActivityRecordView(View):
                 active_record.is_active = False
                 active_record.memo = memo
                 if request.POST["task_name"] == "active":
-                    today_study_time_sum_dic = ActiveRecord.objects.exclude(active_type="active").filter(today_jst_str=latest_active_record.today_jst_str).aggregate(Sum('period'))
-                    today_study_time_sum = int(today_study_time_sum_dic['period__sum'])
+                    today_study_time_sum_dic = ActiveRecord.objects.filter(active_type='study',today_jst_str=latest_active_record.today_jst_str).aggregate(Sum('period'))
+                    today_study_time_sum = int(today_study_time_sum_dic['period__sum']) if today_study_time_sum_dic != None else 0
                     active_record.study_amount = today_study_time_sum
                     active_record.format_study_amount = module.format_timedelta(today_study_time_sum)
                 active_record.save()

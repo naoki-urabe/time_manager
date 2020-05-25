@@ -25,4 +25,4 @@ def get_all_active_logs():
 
 def compare_study_amount(today_study_time_sum, yesterday_study_time_sum):
     print(today_study_time_sum, yesterday_study_time_sum)
-    return "{:.2f}".format((today_study_time_sum/yesterday_study_time_sum)*100 - 100)
+    return (today_study_time_sum/yesterday_study_time_sum)*100 - 100
