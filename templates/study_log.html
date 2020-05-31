@@ -11,7 +11,7 @@
     {% for activity in study_log %}
     <tr>
     <td>{{activity.task}}</td>
-    <td>{{activity.today|date:"m/d H:i:s T"}}</td>
+    <td>{{activity.today|date:"m/d"}}</td>
     <td>{{activity.begin_time|date:"H:i:s T"}}</td>
     <td>{{activity.end_time|date:"H:i:s T"}}</td>
     <td>{{activity.format_period}}</td>
