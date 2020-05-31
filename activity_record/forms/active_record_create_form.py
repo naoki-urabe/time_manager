@@ -19,7 +19,10 @@ class ActiveRecordCreateForm(forms.ModelForm):
         CHOICE = [
             ('','活動タイプを選択してください'),
             ('active','活動時間'),
-            ('task','タスク'),
+            ('study','勉強'),
+            ('semi-study','準勉強'),
+            ('leisure','遊び'),
+            ('duty','義務'),
             ('schedule','スケジュール')]
         self.fields['active_type'] = forms.ChoiceField(
             required=True,
