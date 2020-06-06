@@ -224,7 +224,8 @@ class ActivityRecordView(View):
                 active_record.memo = memo
                 if request.POST["task_name"] == "active":
                     today_study_time_sum_dic = ActiveRecord.objects.filter(active_type='study',today_jst_str=latest_active_record.today_jst_str).aggregate(Sum('period'))
-                    today_study_time_sum = int(today_study_time_sum_dic['period__sum']) if today_study_time_sum_dic != None else 0
+                    print(today_study_time_sum_dic)
+                    today_study_time_sum = int(today_study_time_sum_dic['period__sum']) if today_study_time_sum_dic['period__sum'] != None else 0
                     active_record.study_amount = today_study_time_sum
                     active_record.format_study_amount = module.format_timedelta(today_study_time_sum)
                 active_record.save()
