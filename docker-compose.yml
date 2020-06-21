@@ -1,0 +1,38 @@
+version: '3.8'
+services:
+    waitfordb:
+      image: dadarek/wait-for-dependencies
+      depends_on:
+        - postgres
+      command: postgres:5432
+    time_manager:
+        build: ./
+        command: python manage.py runserver 0.0.0.0:8000
+        volumes:
+            - ./:/usr/src/time_manager/
+        ports:
+            - 8000:8000
+        environment:
+            - DEBUG=1
+            - SECRET_KEY='09u+)!uq6j2yk@ngr36c($j4h3h(=rfjd7_&8v=rlv4(uu+b-q'
+            - DATABASE_ENGINE=django.db.backends.postgresql
+            - DATABASE_DB=django_db
+            - DATABASE_USER=nao
+            - DATABASE_PASSWORD=fg47gh62
+            - DATABASE_HOST=postgres
+            - DATABASE_PORT=5432
+        depends_on:
+            - postgres
+            - waitfordb
+        tty: true
+
+    postgres:
+        image: postgres:12.3-alpine
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+        environment:
+            - POSTGRES_USER=nao
+            - POSTGRES_PASSWORD=fg47gh62
+            - POSTGRES_DB=django_db
+volumes:
+    postgres_data:
