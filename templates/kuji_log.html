@@ -1,0 +1,24 @@
+<a href="{% url 'activity_record' %}">今日の記録へ</a><br>
+残り:
+{% for c in candidate %}
+    {{c.subject_id}},
+{% endfor %}
+<table border="1">
+    <tr>
+        <th>くじ引き日時</th>
+        <th>ギア番号</th>
+        <th>サイクル数</th>
+        <th>番目</th>
+        <th>科目</th>
+    </tr>
+    {% for log in kuji_log %}
+    <tr>
+        <td>{{log.today|date:"Y/m/d H:i"}}</td>
+        <td>{{log.gear_log}}</td>
+        <td>{{log.cycle_log}}</td>
+        <td>{{log.latest_ver}}</td>
+        <td>{{log.subject}}</td>
+    </tr>
+    {% endfor %}
+</table>
+<a href="{% url 'activity_record' %}">今日の記録へ</a>
