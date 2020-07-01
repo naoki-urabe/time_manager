@@ -5,3 +5,4 @@ __pycache__/
 docker-compose.yml
 .env
 .env.db
+config//local_settings.py
