@@ -24,6 +24,7 @@ jobs:
           echo DATABASE_HOST=${{ secrets.DATABASE_HOST }} >> .env
           echo DATABASE_PORT=${{ secrets.DATABASE_PORT}} >> .env
       - name: Add environment variables to .env.db
+        run: |
           echo POSTGRES_USER=${{ secrets.DATABASE_USER}} >> .env.db
           echo POSTGRES_PASSWORD=${{ secrets.DATABASE_PASSWORD}} >> .env.db
           echo POSTGRES_DB=${{ secrets.DATABASE_DB }} >> .env.db
