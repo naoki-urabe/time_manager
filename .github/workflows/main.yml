@@ -73,8 +73,12 @@ jobs:
            echo POSTGRES_DB=${{ secrets.DATABASE_DB }} >> .env.db
        - name: Build and deploy images on sakura vps
          run: |
-           scp -o StrictHostKeyChecking=no -r -i ${{ secrets.ID_RSA}} ./.env ./docker-compose.prod.yml nao@${{ secrets.SAKURA_VPS_IP_ADDRESS }}:/time_manager
-           ssh -o StrictHostKeyChecking_no -i ${{ secrets.ID_RSA }} nao@${{ secrets.SAKURA_VPS_IP_ADDRESS}} << 'ENDSSH'
+           mkdir .ssh
+           cd .ssh
+           echo ${{ secrets.ID_RSA}} >> rsa_id
+           cd
+           scp -o StrictHostKeyChecking=no -r -i ~/.ssh/rsa_id ./.env ./docker-compose.prod.yml nao@${{ secrets.SAKURA_VPS_IP_ADDRESS }}:/time_manager
+           ssh -o StrictHostKeyChecking_no -i ~/.ssh/rsa_id nao@${{ secrets.SAKURA_VPS_IP_ADDRESS}} << 'ENDSSH'
            cd /time_manager
            source .env
            docker login docker.pkg.github.com -u nao -p ${{ secrets.GITHUB_ACTIONS_TOKEN }} 
