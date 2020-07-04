@@ -83,8 +83,8 @@ jobs:
          env:
            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
          run: |
-           scp -o StrictHostKeyChecking=no -r -i ~/work/time_manager/time_manager/.ssh/rsa_id ./.env ./docker-compose.prod.yml nao@${{ secrets.SAKURA_VPS_IP_ADDRESS }}:/time_manager
-           ssh -o StrictHostKeyChecking_no -i ~/work/time_manager/time_manager/.ssh/rsa_id nao@${{ secrets.SAKURA_VPS_IP_ADDRESS}} << 'ENDSSH'
+           scp -o StrictHostKeyChecking=no -r  ./.env ./docker-compose.prod.yml nao@${{ secrets.SAKURA_VPS_IP_ADDRESS }}:/time_manager
+           ssh -o StrictHostKeyChecking_no -i  nao@${{ secrets.SAKURA_VPS_IP_ADDRESS}} << 'ENDSSH'
            cd /time_manager
            source .env
            docker login docker.pkg.github.com -u nao -p ${{ secrets.GITHUB_ACTIONS_TOKEN }} 
