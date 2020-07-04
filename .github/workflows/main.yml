@@ -1,0 +1,33 @@
+name: Contanuous Integration and Delivery
+
+on: [push]
+
+env:
+  WEB_IMAGE: docker.pkg.github.com/$GITHUB_REPOSITORY/web
+  NGINX_IMAGE: docker.pkg.github.com/$GITHUB_REPOSITORY/nginx
+jobs:
+  build:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@v1
+      - name: Set environment variable
+        run: |
+          echo ::set-env name_WEB_IMAGE::${{ env.WEB_IMAGE }}
+          echo ::set-env name_NGINX_IMAGE::${{ env.NGINX_IMAGE }}
+      - name: Log in to Github packages
+        run: echo ${GITHUB_TOKEN} | docker login -u ${GITHUB_ACTOR} --password-stdin docker.pkg.github.com
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: pull images
+        run: |
+          docker pull ${{ env.WEB_IMAGE }} || true
+          docker pull ${{ env.NGINX_IMAGE }} || true
+      - name: build images
+        run: |
+          docker-compose -f docker-compose.ci.yml build
+      - name: push images
+        run: |
+          docker push ${{ env.WEB_IMAGE }}
+          docker push ${{ env.NGINX_IMAGE }}
