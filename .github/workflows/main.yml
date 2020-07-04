@@ -48,37 +48,37 @@ jobs:
           docker push ${{ env.WEB_IMAGE }}
           docker push ${{ env.NGINX_IMAGE }}
 
-deploy:
-  name: Deploy to sakura vps
-  runs-on: ubuntu-latest
-  needs: build
-  steps:
-     - name: Checkout master
-       uses: actions/checkout@v1
-     - name: Add environment variables to .env
-       run: |
-         echo DEBUG=0 >> .env
-         echo DATABASE_ENGINE=django.db.backends.postgresql >> .env
-         echo DATABASE=postgres >> .env
-         echo SECRET_KEY=${{ secrets.SECRET_KEY }} >> .env
-         echo DATABASE_DB=${{ secrets.DATABASE_DB}} >> .env
-         echo DATABASE_USER=${{ secrets.DATABASE_USER}} >> .env
-         echo DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }} >> .env
-         echo DATABASE_HOST=${{ secrets.DATABASE_HOST }} >> .env
-         echo DATABASE_PORT=${{ secrets.DATABASE_PORT}} >> .env
-     - name: Add environment variables to .env.db
-       run: |
-         echo POSTGRES_USER=${{ secrets.DATABASE_USER}} >> .env.db
-         echo POSTGRES_PASSWORD=${{ secrets.DATABASE_PASSWORD}} >> .env.db
-         echo POSTGRES_DB=${{ secrets.DATABASE_DB }} >> .env.db
-     - name: Build and deploy images on sakura vps
-       run: |
-         scp -o StrictHostKeyChecking=no -r ./.env ./docker-compose.prod.yml nao@${{ secrets.SAKURA_VPS_IP_ADDRESS }}:/time_manager
-         ssh -o StrictHostKeyChecking_no nao@${{ secrets.SAKURA_VPS_IP_ADDRESS}} << 'ENDSSH'
-         cd /time_manager
-         source .env
-         docker login docker.pkg.github.com -u nao -p ${{ secrets.GITHUB_ACTIONS_TOKEN }} 
-         docker pull $WEB_IMAGE
-         docker pull $NGINX_IMAGE
-         docker-compose -f docker-compose.prod.yml up -d
-         ENDSSH
+  deploy:
+    name: Deploy to sakura vps
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+       - name: Checkout master
+         uses: actions/checkout@v1
+       - name: Add environment variables to .env
+         run: |
+           echo DEBUG=0 >> .env
+           echo DATABASE_ENGINE=django.db.backends.postgresql >> .env
+           echo DATABASE=postgres >> .env
+           echo SECRET_KEY=${{ secrets.SECRET_KEY }} >> .env
+           echo DATABASE_DB=${{ secrets.DATABASE_DB}} >> .env
+           echo DATABASE_USER=${{ secrets.DATABASE_USER}} >> .env
+           echo DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }} >> .env
+           echo DATABASE_HOST=${{ secrets.DATABASE_HOST }} >> .env
+           echo DATABASE_PORT=${{ secrets.DATABASE_PORT}} >> .env
+       - name: Add environment variables to .env.db
+         run: |
+           echo POSTGRES_USER=${{ secrets.DATABASE_USER}} >> .env.db
+           echo POSTGRES_PASSWORD=${{ secrets.DATABASE_PASSWORD}} >> .env.db
+           echo POSTGRES_DB=${{ secrets.DATABASE_DB }} >> .env.db
+       - name: Build and deploy images on sakura vps
+         run: |
+           scp -o StrictHostKeyChecking=no -r ./.env ./docker-compose.prod.yml nao@${{ secrets.SAKURA_VPS_IP_ADDRESS }}:/time_manager
+           ssh -o StrictHostKeyChecking_no nao@${{ secrets.SAKURA_VPS_IP_ADDRESS}} << 'ENDSSH'
+           cd /time_manager
+           source .env
+           docker login docker.pkg.github.com -u nao -p ${{ secrets.GITHUB_ACTIONS_TOKEN }} 
+           docker pull $WEB_IMAGE
+           docker pull $NGINX_IMAGE
+           docker-compose -f docker-compose.prod.yml up -d
+           ENDSSH
