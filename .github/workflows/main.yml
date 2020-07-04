@@ -76,6 +76,8 @@ jobs:
            mkdir .ssh
            cd .ssh
            echo ID_RSA=${{ secrets.ID_RSA}} >> rsa_id
+           ls
+           pwd
            cd
            scp -o StrictHostKeyChecking=no -r -i ~/.ssh/rsa_id ./.env ./docker-compose.prod.yml nao@${{ secrets.SAKURA_VPS_IP_ADDRESS }}:/time_manager
            ssh -o StrictHostKeyChecking_no -i ~/.ssh/rsa_id nao@${{ secrets.SAKURA_VPS_IP_ADDRESS}} << 'ENDSSH'
