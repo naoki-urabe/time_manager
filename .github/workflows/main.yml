@@ -19,10 +19,10 @@ jobs:
           echo DATABASE=postgres >> .env
           echo SECRET_KEY=${{ secrets.SECRET_KEY }} >> .env
           echo DATABASE_DB=${{ secrets.DATABASE_DB}} >> .env
-          echo DATABASE_USER=${{ secrets.DATABASE_USER}}
-          echo DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}
-          echo DATABASE_HOST=${{ secrets.DATABASE_HOST }}
-          echo DATABASE_PORT=${{ secrets.DATABASE_PORT}}
+          echo DATABASE_USER=${{ secrets.DATABASE_USER}} >> .env
+          echo DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }} >> .env
+          echo DATABASE_HOST=${{ secrets.DATABASE_HOST }} >> .env
+          echo DATABASE_PORT=${{ secrets.DATABASE_PORT}} >> .env
       - name: Set environment variable
         run: |
           echo ::set-env name_WEB_IMAGE::${{ env.WEB_IMAGE }}
