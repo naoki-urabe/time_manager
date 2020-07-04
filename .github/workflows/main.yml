@@ -17,7 +17,7 @@ jobs:
           echo DEBUG=0 >> .env
           echo DATABASE_ENGINE=django.db.backends.postgresql >> .env
           echo DATABASE=postgres >> .env
-          
+          echo SECRET_KEY=${{ secrets.SECRET_KEY }} >> .env
       - name: Set environment variable
         run: |
           echo ::set-env name_WEB_IMAGE::${{ env.WEB_IMAGE }}
