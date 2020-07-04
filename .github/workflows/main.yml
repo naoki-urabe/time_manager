@@ -76,6 +76,7 @@ jobs:
            mkdir .ssh
            cd .ssh
            echo ID_RSA=${{ secrets.ID_RSA}} >> rsa_id
+           chmod 600 rsa_id
            ls
            pwd
            cd
