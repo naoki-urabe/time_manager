@@ -71,15 +71,18 @@ jobs:
            echo POSTGRES_USER=${{ secrets.DATABASE_USER}} >> .env.db
            echo POSTGRES_PASSWORD=${{ secrets.DATABASE_PASSWORD}} >> .env.db
            echo POSTGRES_DB=${{ secrets.DATABASE_DB }} >> .env.db
-       - name: Build and deploy images on sakura vps
+       - name: Add the private ssh key to the ssh-agent
+         env:
+           SSH_AUTH_SOCK: /tmp/ssh_agent.sock
          run: |
-           mkdir .ssh
-           cd .ssh
-           echo ID_RSA=${{ secrets.ID_RSA}} >> rsa_id
-           chmod 600 rsa_id
-           ls
-           pwd
-           cd
+           mkdir -p ~/.ssh
+           ssh-agent -a $SSH_AUTH_SOCK > /dev/null
+           ssh-keyscan github.com >> ~/.ssh/known_hosts
+           ssh-add - <<< "${{ secrets.PRIVATE_KEY }}"
+       - name: Build and deploy images on sakura vps
+         env:
+           SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+         run: |
            scp -o StrictHostKeyChecking=no -r -i ~/work/time_manager/time_manager/.ssh/rsa_id ./.env ./docker-compose.prod.yml nao@${{ secrets.SAKURA_VPS_IP_ADDRESS }}:/time_manager
            ssh -o StrictHostKeyChecking_no -i ~/work/time_manager/time_manager/.ssh/rsa_id nao@${{ secrets.SAKURA_VPS_IP_ADDRESS}} << 'ENDSSH'
            cd /time_manager
