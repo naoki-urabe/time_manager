@@ -12,5 +12,6 @@ then
 
     echo "PostgreSQL started"
 fi
+docker-compose -f docker-compose.prod.yml exec time_manager python manage.py migrate --noinput
 
 exec "$@"
