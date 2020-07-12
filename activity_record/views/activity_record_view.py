@@ -31,7 +31,9 @@ class ActivityRecordView(View):
         latest_active_record = ActiveRecord.objects.filter(active_type='active').order_by('-today').first()
         active_record_list = ActiveRecord.objects.filter(active_type='active').order_by('-today')
         print(active_record_list)
-        yesterday_active_record = ActiveRecord.objects.filter(active_type='active').order_by('-today')[1] if ActiveRecord.objects.filter(active_type='active')!=None else None
+        yesterday_active_record = None
+        if len(active_record_list) > 2:
+            yesterday_active_record = ActiveRecord.objects.filter(active_type='active').order_by('-today')[1] if ActiveRecord.objects.filter(active_type='active')!=None else None 
         active_exists = latest_active_record.is_active
         has_already_today_active =  localtime(timezone.now()).date()==latest_active_record.today_jst and not latest_active_record.is_active
         active_id = latest_active_record.id if active_exists else -1
