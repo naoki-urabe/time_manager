@@ -17,28 +17,27 @@ from activity_record.forms import GearFormSet
 from activity_record.forms import ReviewFormSet
 import re
 from activity_record.modules import module
+from activity_record.modules import load_logs
 from django.db.models import Sum
 
 class ActivityRecordView(View):
     def get(self, request, *args, **kwargs):
-        
-        latest_task_record = ActiveRecord.objects.exclude(active_type='active').order_by('-today').first()
-        task_exists = latest_task_record.is_active if latest_task_record != None else False 
-        task_id = latest_task_record.id if task_exists else -1
-        task_name = latest_task_record.task if task_exists else ''
-        task_memo = latest_task_record.memo if task_exists else ''
-        task_status = '終了' if task_exists else '開始'
-        latest_active_record = ActiveRecord.objects.filter(active_type='active').order_by('-today').first()
+        task_logs = load_logs.load_logs("task")
+        latest_task_log = task_logs.first()
+        task_log_info = load_logs.load_log_info(latest_task_log)
+        active_logs = load_logs.load_logs("active")
+        latest_active_log = active_logs.first()
+        """
         active_record_list = ActiveRecord.objects.filter(active_type='active').order_by('-today')
         print(active_record_list)
         yesterday_active_record = None
         if len(active_record_list) > 2:
             yesterday_active_record = ActiveRecord.objects.filter(active_type='active').order_by('-today')[1] if ActiveRecord.objects.filter(active_type='active')!=None else None 
-        active_exists = latest_active_record.is_active
+        """
+        active_log_info = load_logs.load_log_info(latest_active_log)
+        
         has_already_today_active =  localtime(timezone.now()).date()==latest_active_record.today_jst and not latest_active_record.is_active
-        active_id = latest_active_record.id if active_exists else -1
-        active_status = '活動中' if active_exists else '睡眠中'
-        active_memo = latest_active_record.memo if active_exists else ''
+        
         today_activities =  ActiveRecord.objects.filter(today_jst_str=latest_active_record.today_jst_str).order_by('-today')
         latest_kuji_log = KujiLog.objects.all().order_by('-today').first()
         subject_logs = ActiveRecord.objects.filter(task=latest_task_record.task).order_by('-today')[:3] if task_name!='' else None
