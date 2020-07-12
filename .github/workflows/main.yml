@@ -86,7 +86,7 @@ jobs:
            scp -o StrictHostKeyChecking=no -r  ./.env ./.env.db ./docker-compose.prod.yml ./Dockerfile.prod ./Pipfile entrypoint.prod.sh nao@${{ secrets.SAKURA_VPS_IP_ADDRESS }}:/time_manager
            ssh -o StrictHostKeyChecking=no nao@${{ secrets.SAKURA_VPS_IP_ADDRESS}} << 'ENDSSH'
            cd /time_manager
-           source .env
+           
            docker login docker.pkg.github.com -u nao -p ${{ secrets.GITHUB_ACTIONS_TOKEN }} 
            docker pull $WEB_IMAGE
            docker pull $NGINX_IMAGE
