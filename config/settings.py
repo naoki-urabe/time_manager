@@ -21,12 +21,12 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '09u+)!uq6j2yk@ngr36c($j4h3h(=rfjd7_&8v=rlv4(uu+b-q'
+SECRET_KEY = os.environ.get('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = int(os.environ.get('DEBUG', default=0))
 
-ALLOWED_HOSTS = ['127.0.0.1','.herokuapp.com']
+ALLOWED_HOSTS = ['localhost','127.0.0.1','.herokuapp.com','153.126.129.178']
 
 
 # Application definition
@@ -78,12 +78,12 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'time_manager',
-        'USER': 'nao',
-        'PASSWORD': 'fg47gh62',
-        'HOST': 'localhost',
-        'PORT': ''
+        'ENGINE': os.environ.get('DATABASE_ENGINE', 'django.db.backends.sqlite3'),
+        'NAME': os.environ.get('DATABASE_DB', os.path.join(BASE_DIR, 'db.sqlite3')),
+        'USER': os.environ.get('DATABASE_USER', 'user'),
+        'PASSWORD': os.environ.get('DATABASE_PASSWORD', 'password'),
+        'HOST': os.environ.get('DATABASE_HOST', 'localhost'),
+        'PORT': os.environ.get('DATABASE_PORT', '5432'),
     }
 }
 
@@ -124,15 +124,14 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_URL = '/staticfiles/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 STATICFILES_DIRS = (
     [
-        os.path.join(BASE_DIR, "static"),
     ]
 )
-
+"""
 try:
     from .local_settings import *
 except ImportError:
@@ -144,3 +143,4 @@ if not DEBUG:
     django_heroku.settings(locals())
 db_from_env = dj_database_url.config(conn_max_age=600, ssl_require=True)
 DATABASES['default'].update(db_from_env)
+"""

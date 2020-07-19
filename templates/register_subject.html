@@ -1,0 +1,17 @@
+<a href="{% url 'activity_record' %}">今日の記録へ</a><br>
+{{register_msg}}
+<form action="" method="post">
+    {% csrf_token %}
+    {% for form in formset %}
+        科目名:{{form.subject}}
+        科目ID:{{form.subject_id}}
+        科目種別:{{form.subject_type}}
+        削除{{ form.DELETE }}<br>
+        {% for field in form.hidden_fields %}
+            {{ field }}
+        {% endfor %}
+    {% endfor %}
+    {{ formset.management_form }} 
+    <input type="submit" value="送信">
+</form>
+<a href="{% url 'activity_record' %}">今日の記録へ</a>
