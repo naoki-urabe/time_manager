@@ -2,7 +2,8 @@ activity_record/__pycache__/
 activity_record/migrations/__pycache__/
 activity_record/__pycache__/
 __pycache__/
-docker-compose.yml
-.env
-.env.db
+.env.dev
+.env.dev.db
+.env.prod
+.env.prod.db
 config/local_settings.py
