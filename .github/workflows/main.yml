@@ -1,7 +1,7 @@
 name: Contanuous Integration and Delivery
 
 on: 
-  push
+  push:
     branches:
       - master
 
