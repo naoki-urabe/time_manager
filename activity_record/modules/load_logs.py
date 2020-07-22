@@ -9,11 +9,13 @@ def load_log_info(log):
         "id": -1,
         "name": "",
         "memo": "",
-        "status": "開始"
+        "status": "開始",
+        "is_exists": False
     }
     if log_exists:
         log_info.id = log.id
         log_info.name = log.task
         log_info.memo = log.memo
         log_info.status = "終了"
+        log_info.is_exists = True
     return log_info

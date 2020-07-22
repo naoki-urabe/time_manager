@@ -36,19 +36,20 @@ class ActivityRecordView(View):
         """
         active_log_info = load_logs.load_log_info(latest_active_log)
         
-        has_already_today_active =  localtime(timezone.now()).date()==latest_active_record.today_jst and not latest_active_record.is_active
+        has_already_today_active = localtime(timezone.now()).date()==latest_active_log.today_jst and not latest_active_log.is_active if latest_active_log != None else False
         
-        today_activities =  ActiveRecord.objects.filter(today_jst_str=latest_active_record.today_jst_str).order_by('-today')
+        today_activities =  ActiveRecord.objects.filter(today_jst_str=latest_active_log.today_jst_str).order_by('-today') if latest_active_log != None else None
         latest_kuji_log = KujiLog.objects.all().order_by('-today').first()
-        subject_logs = ActiveRecord.objects.filter(task=latest_task_record.task).order_by('-today')[:3] if task_name!='' else None
+        subject_logs = ActiveRecord.objects.filter(task=latest_task_log.task).order_by('-today')[:3] if task_log_info["name"]!='' else None
         subject_all = Subject.objects.all()
         gear_kind = Gear.objects.all().values_list('gear', flat=True).order_by('gear').distinct()
-        today_study_time_sum_dic = ActiveRecord.objects.filter(active_type="study",today_jst_str=latest_active_record.today_jst_str).aggregate(Sum('period'))
-        yesterday_study_time_sum_dic = ActiveRecord.objects.filter(active_type="study",today_jst_str=yesterday_active_record.today_jst_str).aggregate(Sum('period'))
-        today_study_time_sum = int(today_study_time_sum_dic['period__sum']) if today_study_time_sum_dic['period__sum'] != None else 0
-        yesterday_study_time_sum = int(yesterday_study_time_sum_dic['period__sum']) if yesterday_study_time_sum_dic['period__sum'] != None else 0
-        compare_percentage = module.compare_study_amount(today_study_time_sum, yesterday_study_time_sum) if yesterday_study_time_sum != 0 else 0
-        compare_percentage_msg = "{:.2f}".format(abs(compare_percentage))+"%減" if compare_percentage < 0 else "{:.2f}".format(compare_percentage)+"%増"
+        today_study_time_sum_dic = ActiveRecord.objects.filter(active_type="study",today_jst_str=latest_active_log.today_jst_str).aggregate(Sum('period')) if latest_active_log != None else None
+        #yesterday_study_time_sum_dic = ActiveRecord.objects.filter(active_type="study",today_jst_str=yesterday_active_log.today_jst_str).aggregate(Sum('period'))
+        today_study_time_sum = int(today_study_time_sum_dic['period__sum']) if today_study_time_sum_dic != None and today_study_time_sum_dic['period__sum'] != None else 0
+        #yesterday_study_time_sum = int(yesterday_study_time_sum_dic['period__sum']) if yesterday_study_time_sum_dic['period__sum'] != None else 0
+        #compare_percentage = module.compare_study_amount(today_study_time_sum, yesterday_study_time_sum) if yesterday_study_time_sum != 0 else 0
+        #compare_percentage_msg = "{:.2f}".format(abs(compare_percentage))+"%減" if compare_percentage < 0 else "{:.2f}".format(compare_percentage)+"%増"
+        """
         active_form = ActiveRecordForm(
             initial={
                 'task':'active',
@@ -100,6 +101,12 @@ class ActivityRecordView(View):
         """
         context = {
             'has_already_today_active': has_already_today_active,
+            'task_log_info': task_log_info,
+            'active_log_info': active_log_info
+        }
+        """
+        context = {
+            'has_already_today_active': has_already_today_active,
             'active_status' : active_status,
             'active_form': active_form,
             'task_form': task_form,
@@ -112,6 +119,7 @@ class ActivityRecordView(View):
         """
         return render(request, 'activity_record.html', context)
     def post(self, request, *args, **kwargs):
+        """
         print(request.POST)
         latest_active_record = ActiveRecord.objects.filter(active_type='active').order_by('-today').first()
         yesterday_active_record = ActiveRecord.objects.filter(active_type='active').order_by('-today')[1]
@@ -121,6 +129,7 @@ class ActivityRecordView(View):
         yesterday_study_time_sum = int(yesterday_study_time_sum_dic['period__sum']) if yesterday_study_time_sum_dic['period__sum'] != None else 0
         compare_percentage = module.compare_study_amount(today_study_time_sum, yesterday_study_time_sum) if yesterday_study_time_sum != 0 else 0
         compare_percentage_msg =  "{:.2f}".format(abs(compare_percentage))+"%減" if compare_percentage < 0 else  "{:.2f}".format(compare_percentage)+"%増"
+        """
         if "kuji" in request.POST:
             latest_task_record = ActiveRecord.objects.exclude(active_type='task').order_by('-today').first()
             task_exists = latest_task_record.is_active
@@ -232,6 +241,7 @@ class ActivityRecordView(View):
                     active_record.study_amount = today_study_time_sum
                     active_record.format_study_amount = module.format_timedelta(today_study_time_sum)
                 active_record.save()
+            """
             latest_task_record = ActiveRecord.objects.exclude(active_type='active').order_by('-today').first()
             task_exists = latest_task_record.is_active
             task_id = latest_task_record.id if task_exists else -1
@@ -250,6 +260,13 @@ class ActivityRecordView(View):
             subject_all = Subject.objects.all()
             gear_kind = Gear.objects.all().values_list('gear', flat=True).order_by('gear').distinct()
             review_formset = ReviewFormSet(queryset=Review.objects.filter(today_date=localtime(timezone.now()).date()))
+            """
+            context = {
+                'has_already_today_active': has_already_today_active,
+                'task_log_info': task_log_info,
+                'active_log_info': active_log_info
+            }
+            """
             context = {
                 'active_exists': active_exists,
                 'has_already_today_active': has_already_today_active,
@@ -274,6 +291,7 @@ class ActivityRecordView(View):
                 'compare_percentage': compare_percentage,
                 'compare_percentage_msg': compare_percentage_msg
             }
+            """
             return render(request, 'activity_record.html', context)
         if "register_memo" in request.POST:
             activity_id=request.POST['activity_id']

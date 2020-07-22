@@ -69,8 +69,8 @@
         前日比:{{compare_percentage_msg}}%<br>
         <form action = "" method="post" name="activity">
             {% csrf_token %}
-            <input type="hidden" id="active_exists" name="active_exists" value={{ active_exists }}>
-            <input type="hidden" id="activity_id" name="activity_id" value={{ active_id }}>
+            <input type="hidden" id="active_exists" name="active_exists" value={{ active_log_info.is_exists }}>
+            <input type="hidden" id="activity_id" name="activity_id" value={{ active_log_info.id }}>
             <input type="hidden" id="task_name" name="task_name" value="active">
             {% if active_id != -1 %}
                 <details>
@@ -80,9 +80,9 @@
                 </details>
             {% endif %}
             {% if has_already_today_active %}
-                <button type="submit" id="punch" name="punch" value={{ active_status }} disabled>{{ active_status }}</button>
+                <button type="submit" id="punch" name="punch" value={{ active_log_info.status }} disabled>{{ active_log_info.status }}</button>
             {% else %}
-                <button type="submit" id="punch" name="punch" value={{ active_status }}>{{ active_status }}</button>
+                <button type="submit" id="punch" name="punch" value={{ active_log_info.status }}>{{ active_log_info.status }}</button>
             {% endif %}
         </form>
         タスク<br>
