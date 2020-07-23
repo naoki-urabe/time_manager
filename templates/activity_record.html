@@ -92,7 +92,7 @@
             <select name="gear">
                 <option value=''>ギアを選んでください</option>
                 {% for gk in gear_kind %}
-                    {% if gk == gear %}
+                    {% if gk == latest_kuji_log.gear %}
                         <option value={{gk}} selected>{{gk}}</option>
                     {% else %}
                         <option value={{gk}}>{{gk}}</option>
@@ -106,13 +106,13 @@
         </form>
         <form action = "" method="post" name="task">
             {% csrf_token %}
-            <input type="hidden" id="active_exists" name="active_exists" value={{ task_exists }}>
-            <input type="hidden" id="activity_id" name="activity_id" value={{ task_id }}>
-            {% if not task_exists %}
+            <input type="hidden" id="active_exists" name="active_exists" value={{ task_log_info.is_exists }}>
+            <input type="hidden" id="activity_id" name="activity_id" value={{ task_log_info.id }}>
+            {% if not task_log_info.is_exists %}
             <select name="task_name">
                 <option value=''>科目を選んでください</option>
                 {% for subject in subject_all %}
-                    {% if task_name == subject.subject %}
+                    {% if task_log_info.name == subject.subject %}
                         <option value={{subject.subject}} selected>{{subject.subject}}</option>
                     {% else %}
                         <option value={{subject.subject}}>{{subject.subject}}</option>
@@ -120,15 +120,15 @@
                 {% endfor %}
             </select>
             {% else %}
-                {{ task_name }}
-                <input type="hidden" id="task_name" name="task_name" value={{ task_name }}>
+                {{ task_log_info.name }}
+                <input type="hidden" id="task_name" name="task_name" value={{ task_log_info.name }}>
             {% endif %}
             <input type="hidden" id="button_type" name="button_type" value="">
             <button type="submit" id="punch" name="punch">{{ task_log_info.status }}</button>
             <br>
-            {% if task_exists %}
+            {% if task_log_info.is_exists %}
                  MEMO<br>
-                <textarea name="memo" cols="100" rows="5">{{ task_memo }}</textarea>
+                <textarea name="memo" cols="100" rows="5">{{ task_log_info.memo }}</textarea>
                 <button type="submit" id="register_memo" name="register_memo">登録</button>
             {% endif %}
         </form>
