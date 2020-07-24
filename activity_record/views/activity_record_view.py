@@ -130,6 +130,31 @@ class ActivityRecordView(View):
         compare_percentage = module.compare_study_amount(today_study_time_sum, yesterday_study_time_sum) if yesterday_study_time_sum != 0 else 0
         compare_percentage_msg =  "{:.2f}".format(abs(compare_percentage))+"%減" if compare_percentage < 0 else  "{:.2f}".format(compare_percentage)+"%増"
         """
+        task_logs = load_logs.load_logs("task")
+        latest_task_log = task_logs.first()
+        task_log_info = load_logs.load_log_info(latest_task_log)
+        print(task_log_info)
+        active_logs = load_logs.load_logs("active")
+        latest_active_log = active_logs.first()
+        """
+        active_record_list = ActiveRecord.objects.filter(active_type='active').order_by('-today')
+        print(active_record_list)
+        yesterday_active_record = None
+        if len(active_record_list) > 2:
+            yesterday_active_record = ActiveRecord.objects.filter(active_type='active').order_by('-today')[1] if ActiveRecord.objects.filter(active_type='active')!=None else None 
+        """
+        print(latest_active_log)
+        active_log_info = load_logs.load_log_info(latest_active_log)
+        
+        has_already_today_active = localtime(timezone.now()).date()==latest_active_log.today_jst and not latest_active_log.is_active if latest_active_log != None else False
+        
+        today_activities =  ActiveRecord.objects.filter(today_jst_str=latest_active_log.today_jst_str).order_by('-today') if latest_active_log != None else None
+        latest_kuji_log = KujiLog.objects.all().order_by('-today').first()
+        subject_logs = ActiveRecord.objects.filter(task=latest_task_log.task).order_by('-today')[:3] if task_log_info["name"]!='' else None
+        subject_all = Subject.objects.all()
+        gear_kind = Gear.objects.all().values_list('gear', flat=True).order_by('gear').distinct()
+        today_study_time_sum_dic = ActiveRecord.objects.filter(active_type="study",today_jst_str=latest_active_log.today_jst_str).aggregate(Sum('period')) if latest_active_log != None else None
+
         if "kuji" in request.POST:
             latest_task_record = ActiveRecord.objects.exclude(active_type='task').order_by('-today').first()
             task_exists = latest_task_record.is_active
@@ -235,7 +260,7 @@ class ActivityRecordView(View):
                 active_record.is_active = False
                 active_record.memo = memo
                 if request.POST["task_name"] == "active":
-                    today_study_time_sum_dic = ActiveRecord.objects.filter(active_type='study',today_jst_str=latest_active_record.today_jst_str).aggregate(Sum('period'))
+                    today_study_time_sum_dic = ActiveRecord.objects.filter(active_type='study',today_jst_str=latest_active_log.today_jst_str).aggregate(Sum('period'))
                     print(today_study_time_sum_dic)
                     today_study_time_sum = int(today_study_time_sum_dic['period__sum']) if today_study_time_sum_dic['period__sum'] != None else 0
                     active_record.study_amount = today_study_time_sum

@@ -12,10 +12,12 @@ def load_log_info(log):
         "status": "開始",
         "is_exists": False
     }
+    print(log_info)
+    print("----------------------")
     if log_exists:
-        log_info.id = log.id
-        log_info.name = log.task
-        log_info.memo = log.memo
-        log_info.status = "終了"
-        log_info.is_exists = True
+        log_info["id"] = log.id
+        log_info["name"] = log.task
+        log_info["memo"] = log.memo
+        log_info["status"] = "終了"
+        log_info["is_exists"] = True
     return log_info
