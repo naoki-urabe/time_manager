@@ -16,11 +16,11 @@
             dataTable.addColumn({ type: 'date', id: 'End' });
            
             dataTable.addRows([  
-            {% for activity in today_activity %}
-                {% if activity.active_type != 'active' and activity.is_active != True %}     
-                    ["{{activity.task}}",new Date("{{ activity.begin_time.isoformat }}"), new Date("{{ activity.end_time.isoformat }}")], 
-                {% endif %}         
-            {% endfor %}       
+                {% for activity in today_activities %}
+                    {% if activity.active_type != 'active' and activity.is_active != True %}     
+                        ["{{activity.task}}",new Date("{{ activity.begin_time.isoformat }}"), new Date("{{ activity.end_time.isoformat }}")], 
+                    {% endif %}         
+                {% endfor %}       
             ]);
             chart.draw(dataTable);
         }
@@ -75,7 +75,7 @@
             {% if active_id != -1 %}
                 <details>
                     <summary>日誌</summary>
-                        <textarea name="memo" cols="100" rows="5">{{ active_memo }}</textarea>
+                        <textarea name="memo" cols="100" rows="5">{{ active_log_info.memo }}</textarea>
                         <button type="submit" id="register_memo" name="register_memo" value="登録">登録</button>
                 </details>
             {% endif %}
@@ -174,7 +174,7 @@
                 <th>活動時間</th>
                 <th>メモ</th>
             </tr>
-            {% for activity in today_activity %}
+            {% for activity in today_activities %}
             <tr>
                 <td>{{activity.task}}</td>
                 <td>{{activity.begin_time|date:"H:i:s T"}}</td>
