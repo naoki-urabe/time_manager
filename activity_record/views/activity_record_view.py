@@ -22,7 +22,7 @@ from django.db.models import Sum
 
 class ActivityRecordView(View):
     def get(self, request, *args, **kwargs):
-        task_logs = load_logs.load_logs("task")
+        task_logs = load_logs.load_logs("study")
         latest_task_log = task_logs.first()
         task_log_info = load_logs.load_log_info(latest_task_log)
         active_logs = load_logs.load_logs("active")
@@ -53,27 +53,31 @@ class ActivityRecordView(View):
         active_form = ActiveRecordForm(
             initial={
                 'task':'active',
-                'active_exists':active_exists,
-                'active_id':active_id,
-                'active_memo':active_memo,
+                'active_exists':active_log_info.is_exists,
+                'active_id':active_log_info.id,
+                'active_memo':active_log_info.memo,
                 'active_type':'active'
                 })
         task_form = ActiveRecordForm(
             initial={
-                'task':task_name,
-                'active_exists':task_exists,
-                'active_id':task_id,
-                'active_memo':task_memo,
-                'active_type':'task'
+                'task':task_log_info.name,
+                'active_exists':task_log_info.is_exists,
+                'active_id':task_log_info.id,
+                'active_memo':task_log_info.memo,
+                'active_type':'study'
                 })
+                """
         review_formset = ReviewFormSet(request.POST or None, queryset=Review.objects.filter(today_date=localtime(timezone.now()).date()))
         todays_review = Review.objects.filter(Q(tomorrow=localtime(timezone.now()).date()) | 
                                               Q(one_week_later=localtime(timezone.now()).date()) |
                                               Q(two_week_later=localtime(timezone.now()).date()) | 
                                               Q(one_month_later=localtime(timezone.now()).date())).distinct()
+        print(review_formset.management_form)
+        print('#########################')
         print(Review.objects.filter(tomorrow=localtime(timezone.now()).date()))
         print(Review.objects.filter(Q(tomorrow=localtime(timezone.now()))))
         print(todays_review)
+        """
         context = {
             'has_already_today_active': has_already_today_active,
             'today_activity': today_activities,
@@ -95,6 +99,9 @@ class ActivityRecordView(View):
             'active_log_info': active_log_info,
             'gear_kind': gear_kind,
             'subject_all': subject_all,
+            'today_activities': today_activities,
+            'review_formset': review_formset,
+            'todays_review': todays_review,
         }
         """
         context = {
@@ -138,18 +145,27 @@ class ActivityRecordView(View):
         has_already_today_active = localtime(timezone.now()).date()==latest_active_log.today_jst and not latest_active_log.is_active if latest_active_log != None else False
         
         today_activities =  ActiveRecord.objects.filter(today_jst_str=latest_active_log.today_jst_str).order_by('-today') if latest_active_log != None else None
-        latest_kuji_log = KujiLog.objects.all().order_by('-today').first()
+        latest_kuji_log = KujiLog.objects.all().order_by('-today').first() if KujiLog.objects.all().order_by('-today').first() != None else KujiLog()
         subject_logs = ActiveRecord.objects.filter(task=latest_task_log.task).order_by('-today')[:3] if task_log_info["name"]!='' else None
         subject_all = Subject.objects.all()
         gear_kind = Gear.objects.all().values_list('gear', flat=True).order_by('gear').distinct()
         today_study_time_sum_dic = ActiveRecord.objects.filter(active_type="study",today_jst_str=latest_active_log.today_jst_str).aggregate(Sum('period')) if latest_active_log != None else None
+        review_formset = ReviewFormSet(request.POST or None, queryset=Review.objects.filter(today_date=localtime(timezone.now()).date()))
+        #review_formset = ReviewFormSet(queryset=Review.objects.filter(today_date=localtime(timezone.now()).date()))
+        todays_review = Review.objects.filter(Q(tomorrow=localtime(timezone.now()).date()) | 
+                                              Q(one_week_later=localtime(timezone.now()).date()) |
+                                              Q(two_week_later=localtime(timezone.now()).date()) | 
+                                              Q(one_month_later=localtime(timezone.now()).date())).distinct()
         context = {
             'has_already_today_active': has_already_today_active,
             'task_log_info': task_log_info,
             'active_log_info': active_log_info,
             'gear_kind': gear_kind,
             'subject_all': subject_all,
-            'latest_kuji_log': latest_kuji_log
+            'latest_kuji_log': latest_kuji_log,
+            'today_activities': today_activities,
+            'review_formset': review_formset,
+            'todays_review': todays_review,
         } 
         if "kuji" in request.POST:
             latest_kuji_log.gear = int(request.POST['gear'])
@@ -186,7 +202,7 @@ class ActivityRecordView(View):
                 KujiLog.objects.create(gear_log=latest_kuji_log.gear,cycle_log=1,latest_ver=1,today=timezone.now(),subject=selected_subject_name,today_jst_str=localtime(timezone.now()).strftime('%Y%m%d'))
             else:
                 if latest_kuji_log.gear_log != latest_kuji_log.gear:
-                    KujiLog.objects.create(gear_log=gear,cycle_log=1,latest_ver=1,today=timezone.now(),subject=selected_subject_name,today_jst_str=localtime(timezone.now()).strftime('%Y%m%d'))
+                    KujiLog.objects.create(gear_log=latest_kuji_log.gear,cycle_log=1,latest_ver=1,today=timezone.now(),subject=selected_subject_name,today_jst_str=localtime(timezone.now()).strftime('%Y%m%d'))
                 else:
                     if latest_ver==1:
                         KujiLog.objects.create(gear_log=latest_kuji_log.gear,cycle_log=latest_kuji_log.cycle_log+1,latest_ver=1,today=timezone.now(),subject=selected_subject_name,today_jst_str=localtime(timezone.now()).strftime('%Y%m%d'))
@@ -194,7 +210,7 @@ class ActivityRecordView(View):
                         KujiLog.objects.create(gear_log=latest_kuji_log.gear,cycle_log=latest_kuji_log.cycle_log,latest_ver=latest_kuji_log.latest_ver+1,today=timezone.now(),subject=selected_subject_name,today_jst_str=localtime(timezone.now()).strftime('%Y%m%d'))
             subject_all = Subject.objects.all()
             gear_kind = Gear.objects.all().values_list('gear', flat=True).order_by('gear').distinct()
-            review_formset = ReviewFormSet(queryset=Review.objects.filter(today_date=localtime(timezone.now()).date()))
+            context["review_formset"] = ReviewFormSet(queryset=Review.objects.filter(today_date=localtime(timezone.now()).date()))
             print(task_log_info)
             return render(request, 'activity_record.html', context)
         if "punch" in request.POST:
@@ -228,8 +244,15 @@ class ActivityRecordView(View):
                     active_record.study_amount = today_study_time_sum
                     active_record.format_study_amount = module.format_timedelta(today_study_time_sum)
                 active_record.save()
+            task_logs = load_logs.load_logs("study")
+            latest_task_log = task_logs.first()
+            task_log_info = load_logs.load_log_info(latest_task_log)
+            active_logs = load_logs.load_logs("active")
+            latest_active_log = active_logs.first()
+            active_log_info = load_logs.load_log_info(latest_active_log)
             context["task_log_info"] = task_log_info
             context["active_log_info"] = active_log_info
+            context["review_formset"] = ReviewFormSet(queryset=Review.objects.filter(today_date=localtime(timezone.now()).date()))
             """
             today_activities =  ActiveRecord.objects.filter(today_jst_str=latest_active_record.today_jst_str).order_by('-today')
             latest_kuji_log = KujiLog.objects.all().order_by('-today').first()
@@ -267,6 +290,15 @@ class ActivityRecordView(View):
             subject_all = Subject.objects.all()
             gear_kind = Gear.objects.all().values_list('gear', flat=True).order_by('gear').distinct()
             review_formset = ReviewFormSet(queryset=Review.objects.filter(today_date=localtime(timezone.now()).date()))
+            task_logs = load_logs.load_logs("study")
+            latest_task_log = task_logs.first()
+            task_log_info = load_logs.load_log_info(latest_task_log)
+            active_logs = load_logs.load_logs("active")
+            latest_active_log = active_logs.first()
+            active_log_info = load_logs.load_log_info(latest_active_log)
+            context["task_log_info"] = task_log_info
+            context["active_log_info"] = active_log_info
+            context["review_formset"] = ReviewFormSet(queryset=Review.objects.filter(today_date=localtime(timezone.now()).date()))
             return render(request, 'activity_record.html', context)
         if "register_review" in request.POST:
             formset = ReviewFormSet(request.POST or None, queryset=Review.objects.none())
@@ -289,13 +321,13 @@ class ActivityRecordView(View):
                     inst.save()
                     print('---------------------------')
                 formset.save()
-                has_already_today_active =  localtime(timezone.now()).date()==latest_active_record.today_jst and not latest_active_record.is_active
-                today_activities =  ActiveRecord.objects.filter(today_jst_str=latest_active_record.today_jst_str).order_by('-today')
+                has_already_today_active =  localtime(timezone.now()).date()==latest_active_log.today_jst and not latest_active_log.is_active
+                today_activities =  ActiveRecord.objects.filter(today_jst_str=latest_active_log.today_jst_str).order_by('-today')
                 latest_kuji_log = KujiLog.objects.all().order_by('-today').first()
-                subject_logs = ActiveRecord.objects.filter(task=latest_task_record.task).order_by('-today')[:3] if task_name!='' else None
+                subject_logs = ActiveRecord.objects.filter(task=latest_task_log.task).order_by('-today')[:3] if task_log_info["name"]!='' else None
                 subject_all = Subject.objects.all()
                 gear_kind = Gear.objects.all().values_list('gear', flat=True).order_by('gear').distinct()
-                review_formset = ReviewFormSet(request.POST or None, queryset=Review.objects.filter(today_date=localtime(timezone.now()).date()))     
+                context["review_formset"] = ReviewFormSet(request.POST or None, queryset=Review.objects.filter(today_date=localtime(timezone.now()).date()))     
                 return render(request, 'activity_record.html', context)
             else:
                 print(formset.errors)
