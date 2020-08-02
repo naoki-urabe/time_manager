@@ -82,6 +82,10 @@ jobs:
            ssh-agent -a $SSH_AUTH_SOCK > /dev/null
            ssh-keyscan github.com >> ~/.ssh/known_hosts
            ssh-add - <<< ${{ secrets.PRIVATE_KEY }}
+       - name: Set environment variable
+         run: |
+           echo ::set-env name=WEB_IMAGE::${{ env.WEB_IMAGE }}
+           echo ::set-env name=NGINX_IMAGE::${{ env.NGINX_IMAGE }}
        - name: Build and deploy images on sakura vps
          env:
            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
