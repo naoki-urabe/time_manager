@@ -90,7 +90,7 @@ jobs:
          env:
            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
          run: |
-           scp -o StrictHostKeyChecking=no -r  ./.env.prod ./.env.prod.db ./docker-compose.prod.yml ./Dockerfile.prod ./Pipfile entrypoint.prod.sh nao@${{ secrets.SAKURA_VPS_IP_ADDRESS }}:/time_manager
+           scp -o StrictHostKeyChecking=no -r  ./.env.prod ./.env.prod.db ./docker-compose.prod.yml ./Dockerfile.prod ./Pipfile entrypoint.prod.sh nginx/Dockerfile nginx/nginx.conf nao@${{ secrets.SAKURA_VPS_IP_ADDRESS }}:/time_manager
            ssh -o StrictHostKeyChecking=no nao@${{ secrets.SAKURA_VPS_IP_ADDRESS}} << 'ENDSSH'
            cd /time_manager
            
