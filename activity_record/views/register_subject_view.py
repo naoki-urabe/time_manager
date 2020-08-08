@@ -17,8 +17,9 @@ from activity_record.forms import GearFormSet
 from activity_record.forms import ReviewFormSet
 import re
 from activity_record.modules import module
+from django.contrib.auth.mixins import LoginRequiredMixin
 
-class RegisterSubjectView(View):
+class RegisterSubjectView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         formset = SubjectFormSet()
         context = {

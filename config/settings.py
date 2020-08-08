@@ -131,6 +131,8 @@ STATICFILES_DIRS = (
     [
     ]
 )
+
+LOGIN_REDIRECT_URL = '/activity_record'
 """
 try:
     from .local_settings import *

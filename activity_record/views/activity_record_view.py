@@ -19,8 +19,11 @@ import re
 from activity_record.modules import module
 from activity_record.modules import load_logs
 from django.db.models import Sum
+from django.contrib.auth.mixins import LoginRequiredMixin
 
-class ActivityRecordView(View):
+class ActivityRecordView(LoginRequiredMixin, View):
+    login_url = '/accounts/login/'
+    redirect_field_name = 'redirect_to'
     def get(self, request, *args, **kwargs):
         task_logs = load_logs.load_logs("study")
         latest_task_log = task_logs.first()

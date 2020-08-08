@@ -12,8 +12,9 @@ import datetime
 from time import mktime
 import re
 from activity_record.modules import module
+from django.contrib.auth.mixins import LoginRequiredMixin
 
-class ActivityLogView(View):
+class ActivityLogView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         all_active_logs = module.get_all_active_logs()
         context = {
