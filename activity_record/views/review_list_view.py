@@ -17,8 +17,9 @@ from activity_record.forms import GearFormSet
 from activity_record.forms import ReviewFormSet
 import re
 from activity_record.modules import module
+from django.contrib.auth.mixins import LoginRequiredMixin
 
-class ReviewListView(View):
+class ReviewListView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         review_list = Review.objects.all().order_by('-today')
         context = {

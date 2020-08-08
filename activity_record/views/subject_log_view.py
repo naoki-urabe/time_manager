@@ -10,8 +10,9 @@ from django.utils import timezone
 from django.utils.timezone import localtime
 import datetime
 from time import mktime
+from django.contrib.auth.mixins import LoginRequiredMixin
 
-class SubjectLogView(View):
+class SubjectLogView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         subject_logs = None
         context = {

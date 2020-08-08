@@ -17,8 +17,9 @@ from activity_record.forms import GearFormSet
 from activity_record.forms import ReviewFormSet
 import re
 from activity_record.modules import module
+from django.contrib.auth.mixins import LoginRequiredMixin
 
-class ActivityDetailView(View):
+class ActivityDetailView(LoginRequiredMixin, View):
     def get(self, request,today_jst_str, *args, **kwargs):
         active_histories = ActiveRecord.objects.filter(today_jst_str=today_jst_str).order_by('-today')
         print(active_histories)
