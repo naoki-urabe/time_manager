@@ -17,8 +17,9 @@ from activity_record.forms import GearFormSet
 from activity_record.forms import ReviewFormSet
 import re
 from activity_record.modules import module
+from django.contrib.auth.mixins import LoginRequiredMixin
 
-class RegisterGearView(View):
+class RegisterGearView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         formset = GearFormSet(queryset=Gear.objects.order_by('gear'))
         context = {
