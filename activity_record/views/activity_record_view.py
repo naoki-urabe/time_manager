@@ -260,8 +260,9 @@ class ActivityRecordView(LoginRequiredMixin, View):
             context["review_formset"] = ReviewFormSet(queryset=Review.objects.filter(today_date=localtime(timezone.now()).date()))
             subject_logs = ActiveRecord.objects.filter(task=task_log_info["name"]).order_by('-today')[:3] if task_log_info["name"]!='' else None
             context["subject_logs"] = subject_logs
+            today_activities =  ActiveRecord.objects.filter(today_jst_str=latest_active_log.today_jst_str).order_by('-today')
+            context["today_activities"] = today_activities
             """
-            today_activities =  ActiveRecord.objects.filter(today_jst_str=latest_active_record.today_jst_str).order_by('-today')
             latest_kuji_log = KujiLog.objects.all().order_by('-today').first()
             subject_logs = ActiveRecord.objects.filter(task=latest_task_record.task).order_by('-today')[:3] if task_name!='' else None
             subject_all = Subject.objects.all()
