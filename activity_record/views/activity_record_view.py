@@ -164,6 +164,7 @@ class ActivityRecordView(LoginRequiredMixin, View):
             'task_log_info': task_log_info,
             'active_log_info': active_log_info,
             'gear_kind': gear_kind,
+            'subject_logs': subject_logs,
             'subject_all': subject_all,
             'latest_kuji_log': latest_kuji_log,
             'today_activities': today_activities,
@@ -200,6 +201,7 @@ class ActivityRecordView(LoginRequiredMixin, View):
             selected_subject.latest_ver = latest_ver
             selected_subject.save()
             subject_logs = ActiveRecord.objects.filter(task=selected_subject_name).order_by('-today')[:3] if selected_subject_name!='' else None
+            context["subject_logs"] = subject_logs
             print(subject_logs)
             if latest_kuji_log is None:
                 KujiLog.objects.create(gear_log=latest_kuji_log.gear,cycle_log=1,latest_ver=1,today=timezone.now(),subject=selected_subject_name,today_jst_str=localtime(timezone.now()).strftime('%Y%m%d'))
@@ -256,6 +258,8 @@ class ActivityRecordView(LoginRequiredMixin, View):
             context["task_log_info"] = task_log_info
             context["active_log_info"] = active_log_info
             context["review_formset"] = ReviewFormSet(queryset=Review.objects.filter(today_date=localtime(timezone.now()).date()))
+            subject_logs = ActiveRecord.objects.filter(task=task_log_info["name"]).order_by('-today')[:3] if task_log_info["name"]!='' else None
+            context["subject_logs"] = subject_logs
             """
             today_activities =  ActiveRecord.objects.filter(today_jst_str=latest_active_record.today_jst_str).order_by('-today')
             latest_kuji_log = KujiLog.objects.all().order_by('-today').first()
