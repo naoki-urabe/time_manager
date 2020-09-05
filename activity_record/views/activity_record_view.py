@@ -316,8 +316,10 @@ class ActivityRecordView(LoginRequiredMixin, View):
                 print(instances)
                 print('##############################')
                 for inst in instances:
-                    base_review_id = ("00000" + str(inst.version))[-5:]
-                    inst.review_id = "P" + base_review_id if inst.is_online == 'online' else "N" + base_review_id
+                    inst.subject_type = Subject.objects.get(subject_id=inst.subject_id).subject_type
+                    latest_review = Review.objects.all().order_by('-today').first()
+                    #[-5:]は0000...のトリミングのために行っている
+                    inst.review_id = ("00000" + str(latest_review.id + 1))[-5:] if latest_review != None else "00001"
                     inst.today = localtime(timezone.now())
                     inst.today_date = localtime(timezone.now()).date()
                     inst.tomorrow = localtime(timezone.now()+datetime.timedelta(days=1)).date()
