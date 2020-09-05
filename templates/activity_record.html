@@ -140,12 +140,11 @@
                 {{ review_formset.management_form }}
                 {% for form in review_formset %}
                     科目:{{form.subject_id}}
-                    復習No:{{form.version}}
                     概要:{{form.summary}}
-                    オンライン:{{form.is_online}}<br>
                     {% for field in form.hidden_fields %}
                         {{ field }}
                     {% endfor %}
+                    <br>
                 {% endfor %}
                 <input type="submit" id="register_review" name="register_review" value="送信">
             </form>
