@@ -316,7 +316,9 @@ class ActivityRecordView(LoginRequiredMixin, View):
                 print(instances)
                 print('##############################')
                 for inst in instances:
-                    inst.subject_type = Subject.objects.get(subject_id=inst.subject_id).subject_type
+                    subject = Subject.objects.get(subject_id=inst.subject_id)
+                    inst.subject_type = subject.subject_type
+                    inst.study_type = subject.study_type
                     latest_review = Review.objects.all().order_by('-today').first()
                     #[-5:]は0000...のトリミングのために行っている
                     inst.review_id = ("00000" + str(latest_review.id + 1))[-5:] if latest_review != None else "00001"
