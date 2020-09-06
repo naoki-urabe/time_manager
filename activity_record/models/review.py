@@ -5,7 +5,7 @@ class Review(models.Model):
     subject_id =  models.CharField(null=True, max_length=20)
     summary =  models.CharField(null=True, max_length=50)
     subject_type = models.fields.CharField(null=True, max_length=10)
-    version = models.fields.IntegerField(null=True)
+    study_type = models.fields.CharField(null=True, max_length=10)
     today = models.fields.DateTimeField(null=True)
     today_date = models.fields.DateField(null=True)
     tomorrow = models.fields.DateField(null=True)

@@ -7,4 +7,4 @@ from activity_record.models import Review
 class SubjectFormSet(forms.ModelForm):
     class Meta:
         model = Subject
-        fields = ('subject_id','subject','subject_type')
+        fields = ('subject_id','subject','subject_type','study_type')
