@@ -82,11 +82,15 @@ jobs:
            ssh-agent -a $SSH_AUTH_SOCK > /dev/null
            ssh-keyscan github.com >> ~/.ssh/known_hosts
            ssh-add - <<< ${{ secrets.PRIVATE_KEY }}
+       - name: Set environment variable
+         run: |
+           echo ::set-env name=WEB_IMAGE::${{ env.WEB_IMAGE }}
+           echo ::set-env name=NGINX_IMAGE::${{ env.NGINX_IMAGE }}
        - name: Build and deploy images on sakura vps
          env:
            SSH_AUTH_SOCK: /tmp/ssh_agent.sock
          run: |
-           scp -o StrictHostKeyChecking=no -r  ./.env.prod ./.env.prod.db ./docker-compose.prod.yml ./Dockerfile.prod ./Pipfile entrypoint.prod.sh nao@${{ secrets.SAKURA_VPS_IP_ADDRESS }}:/time_manager
+           scp -o StrictHostKeyChecking=no -r  ./.env.prod ./.env.prod.db ./docker-compose.prod.yml ./Dockerfile.prod ./Pipfile entrypoint.prod.sh nginx/Dockerfile nginx/nginx.conf nao@${{ secrets.SAKURA_VPS_IP_ADDRESS }}:/time_manager
            ssh -o StrictHostKeyChecking=no nao@${{ secrets.SAKURA_VPS_IP_ADDRESS}} << 'ENDSSH'
            cd /time_manager
            

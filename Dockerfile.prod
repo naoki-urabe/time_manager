@@ -18,7 +18,6 @@ RUN pip install --upgrade pip && \
 COPY ./Pipfile /usr/src/time_manager/Pipfile
 RUN pipenv install --skip-lock --system --dev
 COPY ./entrypoint.prod.sh /usr/src/time_manager/entrypoint.prod.sh
-
 COPY . /usr/src/time_manager/
 
 ENTRYPOINT ["/usr/src/time_manager/entrypoint.prod.sh"]
