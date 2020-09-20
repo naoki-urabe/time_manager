@@ -17,8 +17,9 @@ from activity_record.forms import GearFormSet
 from activity_record.forms import ReviewFormSet
 import re
 from activity_record.modules import module
+from django.contrib.auth.mixins import LoginRequiredMixin
 
-class KujiLogView(View):
+class KujiLogView(LoginRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         latest_kuji_log = KujiLog.objects.all().order_by('-today').first()
         candidate = Gear.objects.filter(gear=latest_kuji_log.gear_log,latest_ver=0)

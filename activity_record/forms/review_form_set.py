@@ -7,7 +7,7 @@ from activity_record.models import Review
 class ReviewFormSet(forms.ModelForm):
     class Meta:
         model = Review
-        fields = ('subject_id','summary','is_online','version')
+        fields = ('subject_id','summary')
     def __init__(self,*args,**kwargs):
         super().__init__(*args,**kwargs)
         subject_all = Subject.objects.all()
@@ -17,16 +17,6 @@ class ReviewFormSet(forms.ModelForm):
         for subject in subject_all:
             CHOICE.append((subject.subject_id,subject.subject))
         self.fields['subject_id'] = forms.ChoiceField(
-            required=True,
-            choices=CHOICE,
-            widget=forms.Select
-        )
-        CHOICE = [
-            ('','科目を選択してください'),
-            ('online','オンライン'),
-            ('offline','オフライン')
-            ]
-        self.fields['is_online'] = forms.ChoiceField(
             required=True,
             choices=CHOICE,
             widget=forms.Select

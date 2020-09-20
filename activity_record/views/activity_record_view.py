@@ -19,8 +19,11 @@ import re
 from activity_record.modules import module
 from activity_record.modules import load_logs
 from django.db.models import Sum
+from django.contrib.auth.mixins import LoginRequiredMixin
 
-class ActivityRecordView(View):
+class ActivityRecordView(LoginRequiredMixin, View):
+    login_url = '/accounts/login/'
+    redirect_field_name = 'redirect_to'
     def get(self, request, *args, **kwargs):
         task_logs = load_logs.load_logs("study")
         latest_task_log = task_logs.first()
@@ -161,6 +164,7 @@ class ActivityRecordView(View):
             'task_log_info': task_log_info,
             'active_log_info': active_log_info,
             'gear_kind': gear_kind,
+            'subject_logs': subject_logs,
             'subject_all': subject_all,
             'latest_kuji_log': latest_kuji_log,
             'today_activities': today_activities,
@@ -197,6 +201,7 @@ class ActivityRecordView(View):
             selected_subject.latest_ver = latest_ver
             selected_subject.save()
             subject_logs = ActiveRecord.objects.filter(task=selected_subject_name).order_by('-today')[:3] if selected_subject_name!='' else None
+            context["subject_logs"] = subject_logs
             print(subject_logs)
             if latest_kuji_log is None:
                 KujiLog.objects.create(gear_log=latest_kuji_log.gear,cycle_log=1,latest_ver=1,today=timezone.now(),subject=selected_subject_name,today_jst_str=localtime(timezone.now()).strftime('%Y%m%d'))
@@ -253,8 +258,11 @@ class ActivityRecordView(View):
             context["task_log_info"] = task_log_info
             context["active_log_info"] = active_log_info
             context["review_formset"] = ReviewFormSet(queryset=Review.objects.filter(today_date=localtime(timezone.now()).date()))
+            subject_logs = ActiveRecord.objects.filter(task=task_log_info["name"]).order_by('-today')[:3] if task_log_info["name"]!='' else None
+            context["subject_logs"] = subject_logs
+            today_activities =  ActiveRecord.objects.filter(today_jst_str=latest_active_log.today_jst_str).order_by('-today')
+            context["today_activities"] = today_activities
             """
-            today_activities =  ActiveRecord.objects.filter(today_jst_str=latest_active_record.today_jst_str).order_by('-today')
             latest_kuji_log = KujiLog.objects.all().order_by('-today').first()
             subject_logs = ActiveRecord.objects.filter(task=latest_task_record.task).order_by('-today')[:3] if task_name!='' else None
             subject_all = Subject.objects.all()
@@ -308,8 +316,12 @@ class ActivityRecordView(View):
                 print(instances)
                 print('##############################')
                 for inst in instances:
-                    base_review_id = ("00000" + str(inst.version))[-5:]
-                    inst.review_id = "P" + base_review_id if inst.is_online == 'online' else "N" + base_review_id
+                    subject = Subject.objects.get(subject_id=inst.subject_id)
+                    inst.subject_type = subject.subject_type
+                    inst.study_type = subject.study_type
+                    latest_review = Review.objects.all().order_by('-today').first()
+                    #[-5:]は0000...のトリミングのために行っている
+                    inst.review_id = ("00000" + str(latest_review.id + 1))[-5:] if latest_review != None else "00001"
                     inst.today = localtime(timezone.now())
                     inst.today_date = localtime(timezone.now()).date()
                     inst.tomorrow = localtime(timezone.now()+datetime.timedelta(days=1)).date()
