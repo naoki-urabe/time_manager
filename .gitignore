@@ -7,3 +7,6 @@ __pycache__/
 .env.prod
 .env.prod.db
 config/local_settings.py
+lib/
+lib64/
+bin/
